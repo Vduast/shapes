@@ -8,6 +8,7 @@ const BURST := preload("res://scenes/paint_burst.tscn")
 @onready var monster = $Monster
 @onready var palette = $Palette
 @onready var hud = $HUD
+@onready var tray = $ShapeTray
 
 var stage := 0
 var progress := 0
@@ -29,6 +30,7 @@ func _apply_stage(celebrate: bool) -> void:
 	var cfg: Dictionary = GameData.STAGES[stage]
 	monster.set_stage(stage, not celebrate)  # en un cambio de nivel, la nueva petición llega al terminar de comer
 	palette.set_enabled(cfg["palette"], celebrate)
+	tray.set_allowed_shapes(cfg["shapes"], celebrate)
 	hud.set_hint(cfg["hint"])
 	_update_hud()
 	if celebrate:

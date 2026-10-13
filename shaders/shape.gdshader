@@ -7,6 +7,7 @@ uniform float wave : hint_range(0.0, 1.0) = 1.0;
 uniform vec4 outline_color : source_color = vec4(0.08, 0.06, 0.14, 1.0);
 uniform float outline : hint_range(0.0, 0.2) = 0.045;
 uniform float selected : hint_range(0.0, 1.0) = 0.0;
+uniform float hover : hint_range(0.0, 1.0) = 0.0;
 
 float dot2(vec2 v) { return dot(v, v); }
 
@@ -73,7 +74,7 @@ void fragment() {
     float reveal = (wave >= 1.0) ? 1.0 : 1.0 - smoothstep(reach - 0.1, reach, length(p));
     vec3 base = mix(old_color.rgb, fill_color.rgb, reveal);
 
-    vec3 oc = mix(outline_color.rgb, vec3(1.0), selected);
+    vec3 oc = mix(outline_color.rgb, vec3(1.0), max(selected, hover * 0.8));
     vec3 col = mix(oc, base, inner);
 
     float shine = clamp(1.0 - length(p - vec2(-0.12, -0.12)) * 2.2, 0.0, 1.0);
@@ -82,5 +83,11 @@ void fragment() {
     // Destello mientras se pinta
     col += 0.35 * (1.0 - abs(wave * 2.0 - 1.0)) * inner;
 
-    COLOR = vec4(col, alpha);
+    // Iluminación y halo al pasar el mouse
+    col += 0.10 * hover * inner;
+    float glow = hover * 0.5 * (1.0 - smoothstep(0.0, 0.06, max(d, 0.0)));
+    float a2 = max(alpha, glow);
+    vec3 rgb = mix(vec3(1.0), col, alpha / max(a2, 0.001));
+
+    COLOR = vec4(rgb, a2);
 }

@@ -29,7 +29,7 @@ Juego educativo 2D para niños desarrollado con **Godot Engine 4.7 (GDScript)**.
 9. [Escenas: cómo funciona cada una](#escenas-cómo-funciona-cada-una)
 10. [Shaders y efectos visuales](#shaders-y-efectos-visuales)
 11. [Técnicas de animación usadas](#técnicas-de-animación-usadas)
-12. [Notas conocidas](#notas-conocidas)
+12. [Cambios recientes y notas conocidas](#cambios-recientes-y-notas-conocidas)
 
 ---
 
@@ -38,7 +38,7 @@ Juego educativo 2D para niños desarrollado con **Godot Engine 4.7 (GDScript)**.
 SHAPES es un juego de arrastrar y soltar con cuatro niveles progresivos:
 
 - Un **slime** (`Monster`) en el centro de la pantalla muestra en un globo de pensamiento la figura (y el color) que quiere comer.
-- Una **bandeja** (`ShapeTray`) en la parte inferior ofrece las 5 figuras, siempre disponibles: al sacar una, la bandeja repone otra igual.
+- Una **bandeja** (`ShapeTray`) en la parte inferior ofrece solo las figuras que pide el nivel actual (3 en el nivel 1, las 5 desde el nivel 2): al sacar una, la bandeja repone otra igual. Las figuras de la bandeja **reaccionan al pasar el ratón** (crecen, se menean y se iluminan).
 - Una **paleta** (`Palette`) a la derecha con 3 botes de pintura (rojo, amarillo, azul) y un bote de "Limpiar". Se activa a partir del nivel 2.
 - Un **borrador** (`Eraser`) a la izquierda para deshacerse de las figuras que sobran.
 - Un **HUD** con el nivel, el progreso, una pista y un letrero grande que anuncia cada nivel nuevo.
@@ -57,7 +57,7 @@ SHAPES es un juego de arrastrar y soltar con cuatro niveles progresivos:
 | 3 | Mezclas | Forma + cualquier color, incluidos naranja, verde y morado | Sí | 6 |
 | 4 | ¡Todo junto! | Igual que el 3, sin fin | Sí | ∞ (el HUD muestra ★ con los aciertos) |
 
-1. Mira lo que pide el globo del slime.
+1. Mira lo que pide el globo del slime y toma la figura de la bandeja (se ilumina y se menea al pasar el ratón por encima; el cursor cambia a manita).
 2. Si pide un color: arrastra un **bote de pintura** sobre una figura suelta para pintarla (los colores se **mezclan**). El bote regresa solo a su lugar.
 3. Arrastra la figura hasta el slime y suéltala encima. Si coincide, se la come y cambia de color; si no, la rechaza y la figura sale despedida.
 4. Para borrar una figura o repintarla desde cero: suéltala sobre el **borrador**, o usa el bote **Limpiar** (vuelve la figura a blanco).
@@ -89,7 +89,7 @@ shapes/
 │   ├── monster.tscn         #   Slime que pide y come figuras
 │   ├── request_bubble.tscn  #   Globo de pensamiento con la figura pedida
 │   ├── shape.tscn           #   Figura arrastrable (plantilla de la bandeja y figuras sueltas)
-│   ├── shape_tray.tscn      #   Bandeja que reparte y repone figuras
+│   ├── shape_tray.tscn      #   Bandeja que ofrece y repone las figuras del nivel
 │   ├── color_palette.tscn   #   Contenedor de los 4 botes de pintura
 │   ├── paint_bucket.tscn    #   Bote de pintura individual
 │   ├── eraser.tscn          #   Borrador
@@ -148,9 +148,9 @@ Main (Node2D, main.gd)
 
 ### Ciclo de una jugada
 
-1. `Main._ready()` activa el orden de picking del viewport, conecta `Monster.food_accepted` y aplica el nivel inicial.
+1. `Main._ready()` activa el orden de picking del viewport, conecta `Monster.food_accepted` y aplica el nivel inicial (incluida la bandeja, con `tray.set_allowed_shapes()`).
 2. El `Monster` elige una petición al azar con `GameData.random_request()` y la muestra en su `RequestBubble`.
-3. El jugador saca una `Shape` de la bandeja. Al moverla más de 8 px deja de ser plantilla y emite `left_tray`; la `ShapeTray` crea una nueva del mismo tipo.
+3. Al pasar el ratón sobre una plantilla de la bandeja, esta reacciona (hover). El jugador la saca: al moverla más de 8 px deja de ser plantilla y emite `left_tray`; la `ShapeTray` crea una nueva del mismo tipo.
 4. (Niveles 2+) El jugador arrastra un `PaintBucket` sobre la figura. Al soltarlo, el bote llama a `shape.paint(mask)`: el color se **mezcla con OR de bits** y se anima una onda de color.
 5. Al soltar la figura, `Shape._end_drag()` revisa qué `Area2D` tiene debajo:
    - si es el slime → `Monster.try_eat(shape)`;
@@ -204,7 +204,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 |---|---|
 | `name` | Nombre mostrado en el letrero de nivel |
 | `hint` | Texto de ayuda para el HUD |
-| `shapes` | Tipos de figura que puede pedir (índices de `ShapeType`: 0 círculo, 1 cuadrado, 2 triángulo, 3 estrella, 4 corazón) |
+| `shapes` | Tipos de figura que puede pedir (índices de `ShapeType`: 0 círculo, 1 cuadrado, 2 triángulo, 3 estrella, 4 corazón). **También define qué figuras ofrece la bandeja** en ese nivel |
 | `masks` | Colores que puede pedir (vacío = cualquier color) |
 | `goal` | Aciertos para pasar al siguiente nivel (`0` = nivel final, infinito) |
 | `palette` | Si se muestran los botes de pintura |
@@ -235,12 +235,12 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 
 **Exportado:** `start_stage` (0–3) — nivel con el que empieza; útil para probar un nivel directamente desde el Inspector.
 
-**Variables:** `stage` (nivel actual), `progress` (aciertos en el nivel). Referencias a `$Monster`, `$Palette` y `$HUD`.
+**Variables:** `stage` (nivel actual), `progress` (aciertos en el nivel). Referencias a `$Monster`, `$Palette`, `$HUD` y `$ShapeTray`.
 
 | Función | Descripción |
 |---|---|
 | `_ready()` | Llama a `randomize()`, activa el orden y el "solo el primero" del picking del viewport, conecta `monster.food_accepted` y aplica el nivel inicial (limitado con `clampi`). |
-| `_apply_stage(celebrate)` | Configura el nivel actual: `monster.set_stage(stage, not celebrate)`, `palette.set_enabled(cfg.palette, celebrate)`, la pista del HUD y el progreso. Con `celebrate = true` (cambio de nivel) además muestra el letrero `¡Nivel N!  Nombre` y lanza el confeti. En un cambio de nivel el slime **no** cambia de petición al instante: la nueva llega cuando termina de comer. |
+| `_apply_stage(celebrate)` | Configura el nivel actual: `monster.set_stage(stage, not celebrate)`, `palette.set_enabled(cfg.palette, celebrate)`, `tray.set_allowed_shapes(cfg.shapes, celebrate)`, la pista del HUD y el progreso. Con `celebrate = true` (cambio de nivel) además muestra el letrero `¡Nivel N!  Nombre` y lanza el confeti. En un cambio de nivel el slime **no** cambia de petición al instante: la nueva llega cuando termina de comer. |
 | `_update_hud()` | Envía al HUD nivel, aciertos y meta. |
 | `_on_food_accepted(...)` | Suma 1 al progreso. Si la meta es mayor que 0, se alcanzó y no es el último nivel, sube de nivel y reinicia el progreso; si no, solo actualiza el HUD. |
 | `_confetti()` | Instancia 6 `PaintBurst` en círculo (radio 170 px) alrededor del slime, uno por cada color [rojo, amarillo, azul, naranja, verde, morado], con escala 1.3. |
@@ -272,7 +272,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 ---
 
 ### `shape.gd`
-**Clase:** `Shape` — **Hereda de:** `Area2D`. La figura arrastrable. Es el script más complejo: arrastre, pintura, ciclo de vida y el efecto gelatina.
+**Clase:** `Shape` — **Hereda de:** `Area2D`. La figura arrastrable. Es el script más complejo: arrastre, pintura, ciclo de vida, el efecto gelatina y el feedback de hover.
 
 **Señal:** `left_tray(shape)` — se emite cuando una plantilla sale de la bandeja.
 
@@ -280,7 +280,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 
 **Exportados:** `shape_type` (enum: Círculo, Cuadrado, Triángulo, Estrella, Corazón), `lifetime` (45 s; 0 = nunca desaparece) y `jelly` (0 = rígida, 1 = normal, 2 = exagerada).
 
-**Estado:** `color_mask` (0–7), `is_template` (`true` mientras está en la bandeja: no se puede pintar). Internos de arrastre (`_dragging`, `_moved`, `_vanishing`, `_grab_offset`, `_press_mouse`) y de gelatina (`_sway`, `_stretch`, `_lift`, `_tremor` con sus velocidades).
+**Estado:** `color_mask` (0–7), `is_template` (`true` mientras está en la bandeja: no se puede pintar). Internos de arrastre (`_dragging`, `_moved`, `_vanishing`, `_grab_offset`, `_press_mouse`), de gelatina (`_sway`, `_stretch`, `_lift`, `_tremor` con sus velocidades) y de hover (`_hovered`, `_hover`).
 
 **API pública (la usan otras escenas)**
 
@@ -298,11 +298,13 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 
 | Función | Descripción |
 |---|---|
-| `_ready()` | Duplica el material, centra el pivote del visual y guarda su posición base. |
+| `_ready()` | Duplica el material, centra el pivote del visual, guarda su posición base y conecta las señales `mouse_entered` / `mouse_exited` del `Area2D`. |
 | `_refresh()` | Envía tipo y color al shader (`shape_type`, `fill_color`, `old_color`, `wave = 1`). |
 | `_input_event(...)` / `_input(event)` | Pulsar sobre la figura inicia el arrastre; soltar el botón izquierdo en cualquier parte lo termina (por eso va en `_input`, para no perder el "soltar" si el cursor se sale). |
 | `_process(delta)` | Actualiza la gelatina. Si se arrastra: tras mover **más de 8 px** deja de ser plantilla y emite `left_tray`; sigue al ratón con retraso suave (`lerp` exponencial, factor 24), limitada a la pantalla menos 50 px de margen. Si está suelta: cuenta `_idle`, parpadea (alpha 0.5–1) los últimos 6 s y llama a `vanish()` al agotarse. |
-| `_update_jelly(delta)` | Calcula la velocidad real de la figura y mueve **solo el dibujo** (`visual`) con 3 resortes subamortiguados: inclinación (según velocidad X), estiramiento (horizontal vs. vertical) y "levantada" (crece al agarrarla), más un temblor sinusoidal que se apaga tras soltarla. Ver [Técnicas de animación](#técnicas-de-animación-usadas). |
+| `_update_jelly(delta)` | Calcula la velocidad real de la figura y mueve **solo el dibujo** (`visual`) con 3 resortes subamortiguados: inclinación (según velocidad X), estiramiento (horizontal vs. vertical) y "levantada" (crece al agarrarla), más un temblor sinusoidal que se apaga tras soltarla. También gestiona el **hover**: suaviza `_hover` hacia 1 solo si el cursor está encima de una plantilla que no se arrastra (`lerp` exponencial, factor 14), lo envía al shader, sube el objetivo de `_lift` (`0.10 × _hover`), añade un meneo suave (`0.06 · _hover · sin(t)` rad) y eleva el dibujo 8 px (`bob`). Ver [Técnicas de animación](#técnicas-de-animación-usadas). |
+| `_on_mouse_entered()` / `_on_mouse_exited()` | Marcan `_hovered`. Al entrar sobre una plantilla (no desapareciendo) el cursor cambia a manita (`CURSOR_POINTING_HAND`); al salir vuelve a flecha. |
+| `_exit_tree()` | Si la figura se libera con el cursor encima (por ejemplo al sacarla de la bandeja y desaparecer), restaura el cursor a flecha para que no se quede la manita. |
 | `_start_drag()` | Guarda el desplazamiento entre el cursor y el centro, sube `z_index` a 10, da un saltito y se mueve al final de la lista de hijos (se dibuja por encima). |
 | `_end_drag()` | Si solo fue un clic (sin mover) no hace nada. Si se movió: golpecito de gelatina y revisa los `Area2D` solapados — el primero con `try_eat` (slime) la ofrece; si la rechaza la empuja lejos (`_push_away`); el primero con `erase_shape` (borrador) la borra. |
 | `_push_away(center)` | Si el slime la rechaza, la lanza 240 px en dirección contraria al slime (limitada a pantalla) con `TRANS_BACK`. |
@@ -313,17 +315,21 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 ---
 
 ### `shape_tray.gd`
-**Clase:** `ShapeTray` — **Hereda de:** `Node2D`. Reparte las 5 figuras plantilla y las repone al sacarlas.
+**Clase:** `ShapeTray` — **Hereda de:** `Node2D`. Ofrece las figuras plantilla **del nivel actual** y las repone al sacarlas. Ya no crea figuras por su cuenta: es `Main` quien le indica cuáles con `set_allowed_shapes()`.
 
 **Exportados:** `shape_scene` (`PackedScene` de `shape.tscn`), `spacing` (170 px entre figuras), `shape_lifetime` (45 s; se pasa a cada figura).
 
+**Estado:** `_allowed` (tipos permitidos en el nivel, ordenados) y `_templates` (diccionario `tipo → figura plantilla` que hay ahora en la bandeja).
+
 | Función | Descripción |
 |---|---|
-| `_ready()` | Crea una figura por cada valor de `GameData.ShapeType` (5), sin animación. |
-| `_spawn(type, animate)` | Instancia una figura, la centra horizontalmente según su índice (`(type - centro) * spacing`), le asigna `lifetime`, la configura con `setup(type, 0)`, conecta su señal `left_tray` con `bind(type)` y, si `animate`, la hace aparecer escalando de 0 a 1 en 0.3 s (`TRANS_BACK`). |
-| `_on_shape_left(_shape, type)` | Repone una figura nueva del mismo tipo cuando el jugador saca una de la bandeja. |
+| `set_allowed_shapes(types, animate = true)` | Define qué figuras ofrece la bandeja. Quita las plantillas cuyo tipo ya no está permitido (con `vanish()` si `animate`, o `queue_free()` si no), crea las que faltan y reacomoda todas. `Main` la llama en cada cambio de nivel con `cfg["shapes"]`. |
+| `_slot_x(type)` | Posición X de un tipo según su índice dentro de `_allowed`: `(i - (n - 1) / 2) * spacing`, de modo que la bandeja siempre queda centrada. |
+| `_layout(animate)` | Mueve cada plantilla a su casilla; con `animate`, deslizándolas en 0.3 s (`TRANS_BACK`). |
+| `_spawn(type, animate)` | Instancia una figura, la coloca en su casilla, le asigna `lifetime`, la configura con `setup(type, 0)`, conecta su señal `left_tray` con `bind(type)`, la registra en `_templates` y, si `animate`, la hace aparecer escalando de 0 a 1 en 0.3 s (`TRANS_BACK`). |
+| `_on_shape_left(_shape, type)` | Cuando el jugador saca una plantilla, la quita de `_templates` y repone una nueva del mismo tipo **solo si ese tipo sigue permitido**. |
 
-> La bandeja siempre ofrece los 5 tipos, aunque en el nivel 1 solo se piden círculo, cuadrado y triángulo.
+> Con `animate = false` (arranque del juego) las figuras aparecen directamente; en una subida de nivel, las nuevas entran con animación y las existentes se deslizan para quedar centradas. Las figuras que el jugador ya sacó de la bandeja no se tocan.
 
 ---
 
@@ -412,7 +418,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 Todas las escenas con material propio usan `resource_local_to_scene = true` **y además** duplican el material en `_ready()`/`launch()`. Así, cada instancia tiene sus propios uniforms (si compartieran material, pintar una figura pintaría todas).
 
 ### `main.tscn` — escena principal
-Nodo raíz `Main` (`Node2D`, `main.gd`). Instancia `Background`, `Monster` (610, 229), `Palette` (1101, 136), `ShapeTray` (640, 620), `Eraser` (93, 287) y `HUD`, más una `Camera2D` en (643, 360). Es la única escena que conoce a todas las demás: conecta el slime con el progreso y reparte los cambios de nivel. Las 5 figuras de la bandeja quedan en x = 300, 470, 640, 810 y 980.
+Nodo raíz `Main` (`Node2D`, `main.gd`). Instancia `Background`, `Monster` (610, 229), `Palette` (1101, 136), `ShapeTray` (640, 620), `Eraser` (93, 287) y `HUD`, más una `Camera2D` en (643, 360). Es la única escena que conoce a todas las demás: conecta el slime con el progreso y reparte los cambios de nivel. La bandeja se llena desde `Main`: en el nivel 1 sus 3 figuras quedan en x = 470, 640 y 810, y desde el nivel 2 las 5 en x = 300, 470, 640, 810 y 980.
 
 ### `background.tscn` — fondo
 Un solo `ColorRect` de 1280×720 con `background.gdshader` y `mouse_filter = IGNORE` para no bloquear clics. No tiene script: todo es animación del shader (degradado ondulante, puntos que titilan y un piso oscuro desde el 80 % de la altura).
@@ -428,10 +434,10 @@ Un solo `ColorRect` de 1280×720 con `background.gdshader` y `mouse_filter = IGN
 `Node2D` (`request_bubble.gd`) con dos `ColorRect`: `Bg` (200×200, `bubble.gdshader`) dibuja el globo con sus dos circulitos de cola, e `Item` (100×100, `shape.gdshader`) dibuja la figura pedida encima, reutilizando el mismo shader que las figuras reales.
 
 ### `shape.tscn` — figura
-`Area2D` (`shape.gd`) con `Collision` (círculo r=52) y `Visual` (`ColorRect` de 128×128 con `shape.gdshader`). El script mueve y deforma `Visual` (no el `Area2D`), de modo que la zona de colisión se mantiene estable aunque el dibujo se estire y se incline. La misma escena sirve para las plantillas de la bandeja y para las figuras sueltas: lo único que cambia es `is_template`.
+`Area2D` (`shape.gd`) con `Collision` (círculo r=52) y `Visual` (`ColorRect` de 128×128 con `shape.gdshader`). El script mueve y deforma `Visual` (no el `Area2D`), de modo que la zona de colisión se mantiene estable aunque el dibujo se estire y se incline. La misma escena sirve para las plantillas de la bandeja y para las figuras sueltas: lo único que cambia es `is_template`. El hover (cursor de manita, brillo y halo) solo se aplica a las plantillas.
 
 ### `shape_tray.tscn` — bandeja
-`Node2D` (`shape_tray.gd`) sin hijos al inicio; en `_ready()` crea las 5 figuras. Su `shape_scene` apunta a `shape.tscn`.
+`Node2D` (`shape_tray.gd`) sin hijos al inicio: `Main` la llena llamando a `set_allowed_shapes()` con las figuras del nivel. Su `shape_scene` apunta a `shape.tscn`.
 
 ### `paint_bucket.tscn` — bote de pintura
 `Area2D` (`paint_bucket.gd`) con `Collision` (círculo r=45), `Visual` (`ColorRect` de 90×90 con **el mismo `shape.gdshader`** dibujando un círculo del color del bote) y `Label` (nombre del color, debajo). Su `Area2D` es pickable (a diferencia del slime y el borrador): es lo que el jugador agarra.
@@ -460,7 +466,7 @@ Todos son `shader_type canvas_item`. La mayoría usa **campos de distancia con s
 | Shader | Usado por | Propósito |
 |---|---|---|
 | `background.gdshader` | `background.tscn` | Fondo morado animado con degradado, puntos titilantes y piso. |
-| `shape.gdshader` | `shape.tscn`, `paint_bucket.tscn`, `request_bubble.tscn` (`Item`) | Dibuja las 5 figuras con contorno, brillo, onda de pintura y resaltado. |
+| `shape.gdshader` | `shape.tscn`, `paint_bucket.tscn`, `request_bubble.tscn` (`Item`) | Dibuja las 5 figuras con contorno, brillo, onda de pintura, resaltado y hover. |
 | `monster.gdshader` | `monster.tscn` | El slime: silueta orgánica, respiración, aplastamiento y sombra. |
 | `bubble.gdshader` | `request_bubble.tscn` (`Bg`) | Globo de pensamiento. |
 | `eraser.gdshader` | `eraser.tscn` | Goma rosa y azul inclinada con resalte al pasar una figura. |
@@ -474,11 +480,12 @@ Todos son `shader_type canvas_item`. La mayoría usa **campos de distancia con s
 3. **Piso:** desde `UV.y = 0.80` mezcla el color hacia `color_a * 0.55` con un corte casi duro (`smoothstep(0.80, 0.81, ...)`).
 
 ### `shape.gdshader`
-**Uniforms:** `shape_type` (0 círculo, 1 cuadrado, 2 triángulo, 3 estrella, 4 corazón), `fill_color`, `old_color`, `wave` (0–1), `outline_color`, `outline` (grosor, 0.045), `selected` (0–1).
+**Uniforms:** `shape_type` (0 círculo, 1 cuadrado, 2 triángulo, 3 estrella, 4 corazón), `fill_color`, `old_color`, `wave` (0–1), `outline_color`, `outline` (grosor, 0.045), `selected` (0–1), `hover` (0–1; lo anima `shape.gd`).
 - **SDFs:** `sd_circle`, `sd_box` (cuadrado con esquinas redondeadas, radio 0.06), `sd_triangle`, `sd_star5` (estrella de 5 puntas) y `sd_heart`, estas tres basadas en las fórmulas de Inigo Quilez. Las coordenadas se voltean en Y (`q = (p.x, -p.y)`) para que las figuras queden derechas, y cada una se desplaza/escala para quedar centrada y del mismo tamaño visual.
 - **Onda de color:** el color nuevo se revela como un círculo que crece desde el centro: `reach = wave * 0.8`; el píxel muestra `fill_color` si está dentro del radio y `old_color` si no, con un borde suave de 0.1 (`smoothstep`). Con `wave >= 1.0` se salta el cálculo y muestra `fill_color` directo.
-- **Contorno:** `inner` es el mismo SDF desplazado `outline` hacia dentro; la franja entre `inner` y la silueta es el contorno. Con `selected = 1`, el contorno se vuelve blanco (resaltado cuando un bote está cerca).
+- **Contorno:** `inner` es el mismo SDF desplazado `outline` hacia dentro; la franja entre `inner` y la silueta es el contorno. Con `selected = 1`, el contorno se vuelve blanco (resaltado cuando un bote está cerca); el hover lo aclara hasta un 80 % (`max(selected, hover * 0.8)`).
 - **Brillo:** una mancha de luz suave arriba a la izquierda (`shine`) suma 0.14 al color; además, un **destello** triangular durante la pintura (`0.35 * (1 - abs(wave * 2 - 1))`, máximo cuando `wave = 0.5`).
+- **Hover:** con `hover > 0` el relleno se ilumina un 10 % y aparece un **halo blanco** justo fuera de la silueta (`glow = hover * 0.5 * (1 - smoothstep(0, 0.06, max(d, 0)))`, el mismo SDF visto desde fuera). El alfa final es `max(alpha, glow)` y el color se mezcla con blanco solo en proporción al halo (`alpha / max(a2, 0.001)`), para no ensuciar el antialiasing de los bordes cuando `hover = 0`.
 - Se reutiliza tal cual para los botes de pintura (siempre `shape_type = 0`) y para la figura dentro del globo.
 
 ### `monster.gdshader`
@@ -511,7 +518,7 @@ Un círculo de radio 0.38 con un degradado radial (más oscuro, ×0.78, hacia el
 
 ## Técnicas de animación usadas
 
-**Suavizado exponencial (independiente de los FPS).** En lugar de `lerp(a, b, 0.2)`, se usa `lerp(a, b, 1.0 − exp(−k · delta))`: da el mismo resultado visual a 30 o a 144 FPS. Se usa en el seguimiento del ratón (`k = 24` en figuras, `30` en botes), en `excite` del slime (`k = 10`) y en `hover` del borrador (`k = 12`).
+**Suavizado exponencial (independiente de los FPS).** En lugar de `lerp(a, b, 0.2)`, se usa `lerp(a, b, 1.0 − exp(−k · delta))`: da el mismo resultado visual a 30 o a 144 FPS. Se usa en el seguimiento del ratón (`k = 24` en figuras, `30` en botes), en `excite` del slime (`k = 10`) en `hover` del borrador (`k = 12`) y en el hover de las figuras de la bandeja (`k = 14`).
 
 **Resortes subamortiguados.** Para la sensación de gelatina, `Shape` y `PaintBucket` integran a mano (Euler semiimplícito):
 
@@ -524,19 +531,26 @@ valor += vel * dt
 |---|---|---|---|
 | Inclinación (`_sway`) | 170 | 7 | proporcional a la velocidad en X (máx. ±0.45 rad en figuras, ±0.5 en botes) |
 | Estiramiento (`_stretch`, solo figuras) | 190 | 8 | proporcional a `|vx| − |vy|` (máx. ±0.2) |
-| Levantada (`_lift`) | 220 | 12 | 0.12 al arrastrar figuras, 0.25 con botes, 0 en reposo |
+| Levantada (`_lift`) | 220 | 12 | 0.12 al arrastrar figuras, `0.10 × _hover` sobre una plantilla, 0.25 con botes, 0 en reposo |
 
 Como la amortiguación es baja respecto a la rigidez, el valor **sobrepasa y oscila** antes de asentarse: ese temblor es la gelatina. Los golpes (al agarrar, soltar o pintar) se aplican sumando impulsos directamente a `*_vel`. `dt` se limita a `0.033` para que un salto de frame no haga explotar el resorte. Estos resortes solo modifican el `ColorRect` visual, nunca el `Area2D`, así la colisión no se deforma.
+
+**Hover.** El feedback de las plantillas combina tres cosas sobre el mismo `visual`: el resorte `_lift` (crece con rebote), un meneo senoidal pequeño y un salto vertical de 8 px, todos escalados por `_hover` (0–1, suavizado exponencial). En el shader, `_hover` ilumina la figura y dibuja el halo. Al soltar el cursor, `_hover` baja a 0 y el resorte hace que la figura regrese con el mismo rebote.
 
 **Tweens.** Se usan para animaciones de un solo disparo: apariciones con `TRANS_BACK` (rebote al entrar), sacudidas con `TRANS_ELASTIC`, y `tween_method` para animar uniforms de shaders (`wave`, `progress`, `body_color`).
 
 ---
 
-## Notas conocidas
+## Cambios recientes y notas conocidas
+
+**Cambios recientes**
+- **La bandeja ofrece solo las figuras del nivel:** `ShapeTray` ya no crea las 5 figuras en `_ready()`; `set_allowed_shapes()` (llamada desde `Main._apply_stage`) las crea, quita y centra según `STAGES[n].shapes`, y `_on_shape_left` solo repone tipos permitidos.
+- **Feedback de hover en las figuras de la bandeja:** nuevo uniform `hover` en `shape.gdshader` (iluminación y halo), resorte de levantada, meneo y saltito en `shape.gd::_update_jelly()`, y cursor de manita.
+
+**Notas conocidas**
 
 - **`HintLabel` está oculto en `hud.tscn`** (`visible = false`) y `HUD.set_hint()` solo cambia el texto, sin mostrarlo, así que las pistas de cada nivel (`hint` en `STAGES`) hoy no se ven en pantalla. El texto por defecto de la escena además describe un flujo anterior ("Toca una figura para pintarla"). Para activarlo basta con quitar `visible = false` o llamar a `show()`.
 - **`food_rejected` no tiene ningún receptor.** El slime la emite al rechazar, pero ningún script la escucha: es un buen punto de enganche para sonido o un contador de errores.
-- **La bandeja siempre ofrece las 5 figuras**, aunque en el nivel 1 solo se pidan círculo, cuadrado y triángulo.
 - **El marrón (7)** se puede obtener mezclando los tres primarios, pero nunca se pide; esas figuras solo sirven para limpiarlas.
 - **Al iniciar, el slime hace dos peticiones seguidas:** una en `Monster._ready()` y otra cuando `Main._ready()` aplica el nivel. Es inocuo (la segunda sustituye a la primera antes del primer frame).
 - **El texto del borrador** (`"Borrador"`) está escrito directamente en `eraser.tscn`, a diferencia de los botes, cuyo rótulo sale de `GameData`.
@@ -544,3 +558,6 @@ Como la amortiguación es baja respecto a la rigidez, el valor **sobrepasa y osc
 - **Los límites de arrastre** usan `get_viewport_rect()`, que no considera la posición de la `Camera2D` (643, 360, 3 px a la derecha del centro). El margen de 50 px lo absorbe sin problemas.
 - `request_bubble.gd` está indentado con espacios; el resto de scripts usa tabulaciones. Funciona (cada archivo es coherente consigo mismo), pero conviene unificar.
 - El proyecto declara `Jolt Physics` como motor 3D, pero no hay ningún nodo 3D: el ajuste no tiene efecto.
+- **El hover solo se aplica a las plantillas de la bandeja** y cambia el cursor global con `Input.set_default_cursor_shape`. Si el cursor pasa directo de una figura a otra, puede quedarse un instante en flecha entre las dos (el orden de `mouse_exited` / `mouse_entered` no está garantizado). Para que también ocurra con figuras sueltas, quita la condición `is_template` en `_update_jelly()` y `_on_mouse_entered()`.
+- **El halo del hover puede recortarse en las puntas de la estrella**, porque el `Visual` mide 128×128 y la estrella ocupa casi todo. Si se nota, reduce el ancho del halo (`0.06` → `0.04`) en `shape.gdshader`.
+- **`set_allowed_shapes()` ya soporta que un nivel quite figuras** (las plantillas sobrantes desaparecen con `vanish()`), pero hoy ningún nivel lo hace: cada nivel solo añade figuras.

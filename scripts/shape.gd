@@ -37,6 +37,10 @@ var _tremor := 0.0        # temblor de posición al soltar
 var _tremor_t := 0.0
 var _visual_base := Vector2.ZERO
 
+# --- Hover (solo plantillas de la bandeja) ---
+var _hovered := false
+var _hover := 0.0
+
 @onready var visual: ColorRect = $Visual
 
 
@@ -46,6 +50,8 @@ func _ready() -> void:
 	_visual_base = visual.position
 	_prev_pos = global_position
 	_refresh()
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
 
 
 func setup(type: int, mask: int = 0) -> void:
@@ -53,6 +59,22 @@ func setup(type: int, mask: int = 0) -> void:
 	color_mask = mask
 	if is_node_ready():
 		_refresh()
+
+
+func _on_mouse_entered() -> void:
+	_hovered = true
+	if is_template and not _vanishing:
+		Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND)
+
+
+func _on_mouse_exited() -> void:
+	_hovered = false
+	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+
+
+func _exit_tree() -> void:
+	if _hovered:
+		Input.set_default_cursor_shape(Input.CURSOR_ARROW)
 
 
 func is_dragging() -> bool:
@@ -169,9 +191,14 @@ func _update_jelly(delta: float) -> void:
 	var vel := (global_position - _prev_pos) / delta
 	_prev_pos = global_position
 
+	# Hover: solo plantillas de la bandeja, y no mientras se arrastran
+	var hover_target := 1.0 if (_hovered and is_template and not _dragging) else 0.0
+	_hover = lerpf(_hover, hover_target, 1.0 - exp(-14.0 * delta))
+	(visual.material as ShaderMaterial).set_shader_parameter("hover", _hover)
+
 	var sway_target := clampf(vel.x * 0.0009, -0.45, 0.45) * jelly
 	var stretch_target := clampf((absf(vel.x) - absf(vel.y)) * 0.00025, -0.2, 0.2) * jelly
-	var lift_target := 0.12 if _dragging else 0.0
+	var lift_target := 0.12 if _dragging else 0.10 * _hover
 
 	# Resortes subamortiguados: por eso "tiemblan" antes de quedarse quietos
 	_sway_vel += ((sway_target - _sway) * 170.0 - _sway_vel * 7.0) * dt
@@ -183,15 +210,18 @@ func _update_jelly(delta: float) -> void:
 	_lift_vel += ((lift_target - _lift) * 220.0 - _lift_vel * 12.0) * dt
 	_lift += _lift_vel * dt
 
-	visual.rotation = _sway
+	# Meneo suave y saltito vertical mientras el cursor está encima
+	visual.rotation = _sway + 0.06 * _hover * sin(Time.get_ticks_msec() * 0.009)
 	visual.scale = Vector2((1.0 + _lift) * (1.0 + _stretch), (1.0 + _lift) * (1.0 - _stretch))
 
+	var bob := Vector2(0.0, -8.0 * _hover)
 	if _tremor > 0.05:
 		_tremor_t += delta
 		_tremor *= exp(-7.0 * delta)
-		visual.position = _visual_base + Vector2(sin(_tremor_t * 70.0), cos(_tremor_t * 58.0)) * _tremor
+		visual.position = _visual_base + bob \
+			+ Vector2(sin(_tremor_t * 70.0), cos(_tremor_t * 58.0)) * _tremor
 	else:
-		visual.position = _visual_base
+		visual.position = _visual_base + bob
 
 
 func _start_drag() -> void:
