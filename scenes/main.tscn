@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://ji6j3pqiy4k5"]
+
+[ext_resource type="Script" uid="uid://x7bqdtbg4fih" path="res://scripts/main.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/background.tscn" id="2_bg"]
+[ext_resource type="PackedScene" uid="uid://b0pq5cld5euut" path="res://scenes/monster.tscn" id="3_monster"]
+[ext_resource type="PackedScene" path="res://scenes/color_palette.tscn" id="4_palette"]
+[ext_resource type="PackedScene" path="res://scenes/shape_tray.tscn" id="5_tray"]
+[ext_resource type="PackedScene" uid="uid://bn8n7hqpptkxc" path="res://scenes/hud.tscn" id="6_hud"]
+[ext_resource type="PackedScene" uid="uid://47hkmebuo6nv" path="res://scenes/eraser.tscn" id="6_o6xl0"]
+
+[node name="Main" type="Node2D" unique_id=988131146]
+script = ExtResource("1_script")
+
+[node name="Background" parent="." unique_id=1123566227 instance=ExtResource("2_bg")]
+
+[node name="Monster" parent="." unique_id=348801447 instance=ExtResource("3_monster")]
+position = Vector2(610, 229)
+
+[node name="Palette" parent="." unique_id=1777340112 instance=ExtResource("4_palette")]
+position = Vector2(1101, 136)
+
+[node name="ShapeTray" parent="." unique_id=2077373426 instance=ExtResource("5_tray")]
+position = Vector2(640, 620)
+
+[node name="Eraser" parent="." unique_id=844693026 instance=ExtResource("6_o6xl0")]
+position = Vector2(93, 287)
+
+[node name="HUD" parent="." unique_id=1581647274 instance=ExtResource("6_hud")]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1687681623]
+position = Vector2(643, 360)

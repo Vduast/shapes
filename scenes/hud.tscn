@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://bn8n7hqpptkxc"]
+
+[ext_resource type="Script" uid="uid://dv6wvag7c4ejy" path="res://scripts/hud.gd" id="1_script"]
+
+[node name="HUD" type="CanvasLayer" unique_id=763234677]
+script = ExtResource("1_script")
+
+[node name="ScoreLabel" type="Label" parent="." unique_id=1744046069]
+offset_left = 24.0
+offset_top = 16.0
+offset_right = 300.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 30
+text = "Puntos: 0"
+
+[node name="HintLabel" type="Label" parent="." unique_id=365665059]
+visible = false
+offset_left = 340.0
+offset_top = 20.0
+offset_right = 1256.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 18
+text = "1) Elige un bote  2) Toca una figura para pintarla (se mezclan)  3) Arrástrala al monstruo"
+horizontal_alignment = 2

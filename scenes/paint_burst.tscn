@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://d4mwwidqge4oq"]
+
+[ext_resource type="Script" uid="uid://bjxteb1gu8qch" path="res://scripts/paint_burst.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://dylhnuerokng7" path="res://shaders/paint_burst.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+shader = ExtResource("2_shader")
+shader_parameter/progress = 0.0
+shader_parameter/burst_color = Color(1, 1, 1, 1)
+
+[node name="PaintBurst" type="Node2D" unique_id=1064261305]
+z_index = 5
+script = ExtResource("1_script")
+
+[node name="Rect" type="ColorRect" parent="." unique_id=1622926411]
+material = SubResource("ShaderMaterial_1")
+offset_left = -130.0
+offset_top = -130.0
+offset_right = 130.0
+offset_bottom = 130.0
+mouse_filter = 2

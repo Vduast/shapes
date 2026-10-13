@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://b0pq5cld5euut"]
+
+[ext_resource type="Script" uid="uid://cfcl5x144e53y" path="res://scripts/monster.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://bkjd4p3pmj11s" path="res://shaders/monster.gdshader" id="2_shader"]
+[ext_resource type="PackedScene" path="res://scenes/request_bubble.tscn" id="3_bubble"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 140.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+resource_local_to_scene = true
+shader = ExtResource("2_shader")
+shader_parameter/body_color = Color(0.70847785, 0.78835183, 0.7631409, 1)
+shader_parameter/excite = 0.0
+shader_parameter/squish = 0.0
+shader_parameter/idle_squish = 0.05
+shader_parameter/idle_speed = 2.4
+
+[node name="Monster" type="Area2D" unique_id=714783032]
+input_pickable = false
+script = ExtResource("1_script")
+
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=498569737]
+shape = SubResource("CircleShape2D_1")
+
+[node name="Body" type="ColorRect" parent="." unique_id=906107311]
+material = SubResource("ShaderMaterial_1")
+offset_left = -170.0
+offset_top = -170.0
+offset_right = 170.0
+offset_bottom = 170.0
+mouse_filter = 2
+
+[node name="AbsorbPoint" type="Marker2D" parent="." unique_id=2089681700]
+position = Vector2(0, 20)
+
+[node name="RequestBubble" parent="." unique_id=365011517 instance=ExtResource("3_bubble")]
+position = Vector2(-205, -57)

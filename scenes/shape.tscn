@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://mv2w47c2ak3y"]
+
+[ext_resource type="Script" uid="uid://c04pov6o4o764" path="res://scripts/shape.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://bv2e028lgoqds" path="res://shaders/shape.gdshader" id="2_shader"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 52.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+resource_local_to_scene = true
+shader = ExtResource("2_shader")
+shader_parameter/shape_type = 0
+shader_parameter/fill_color = Color(1, 1, 1, 1)
+shader_parameter/old_color = Color(1, 1, 1, 1)
+shader_parameter/wave = 1.0
+shader_parameter/outline_color = Color(0.08, 0.06, 0.14, 1)
+shader_parameter/outline = 0.045
+shader_parameter/selected = 0.0
+
+[node name="Shape" type="Area2D" unique_id=1205869134]
+script = ExtResource("1_script")
+
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=1456397]
+shape = SubResource("CircleShape2D_1")
+
+[node name="Visual" type="ColorRect" parent="." unique_id=1638751665]
+material = SubResource("ShaderMaterial_1")
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 64.0
+offset_bottom = 64.0
+mouse_filter = 2

@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://47hkmebuo6nv"]
+
+[ext_resource type="Script" uid="uid://b8w8ju4vbcd12" path="res://scripts/eraser.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://b36vwxfqpeb75" path="res://shaders/eraser.gdshader" id="2_shader"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 60.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+shader = ExtResource("2_shader")
+shader_parameter/hover = 0.0
+
+[node name="Eraser" type="Area2D" unique_id=844693026]
+input_pickable = false
+script = ExtResource("1_script")
+
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=13543233]
+shape = SubResource("CircleShape2D_1")
+
+[node name="Visual" type="ColorRect" parent="." unique_id=854965502]
+material = SubResource("ShaderMaterial_1")
+offset_left = -65.0
+offset_top = -65.0
+offset_right = 65.0
+offset_bottom = 65.0
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="." unique_id=518023469]
+offset_left = -60.0
+offset_top = 62.0
+offset_right = 60.0
+offset_bottom = 88.0
+text = "Borrador"
+horizontal_alignment = 1

@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/shape_tray.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/shape.tscn" id="2_shape"]
+
+[node name="ShapeTray" type="Node2D"]
+script = ExtResource("1_script")
+shape_scene = ExtResource("2_shape")

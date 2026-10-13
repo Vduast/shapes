@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/color_palette.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/paint_bucket.tscn" id="2_bucket"]
+
+[node name="Palette" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Red" parent="." instance=ExtResource("2_bucket")]
+mask = 1
+
+[node name="Yellow" parent="." instance=ExtResource("2_bucket")]
+position = Vector2(0, 130)
+mask = 2
+
+[node name="Blue" parent="." instance=ExtResource("2_bucket")]
+position = Vector2(0, 260)
+mask = 4
+
+[node name="Clean" parent="." instance=ExtResource("2_bucket")]
+position = Vector2(0, 390)
+mask = 0

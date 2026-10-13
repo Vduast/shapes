@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/request_bubble.gd" id="1_script"]
+[ext_resource type="Shader" path="res://shaders/bubble.gdshader" id="2_bubble"]
+[ext_resource type="Shader" path="res://shaders/shape.gdshader" id="3_shape"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bg"]
+shader = ExtResource("2_bubble")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_item"]
+resource_local_to_scene = true
+shader = ExtResource("3_shape")
+shader_parameter/shape_type = 0
+
+[node name="RequestBubble" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Bg" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_bg")
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
+mouse_filter = 2
+
+[node name="Item" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_item")
+offset_left = -50.0
+offset_top = -74.0
+offset_right = 50.0
+offset_bottom = 26.0
+mouse_filter = 2
