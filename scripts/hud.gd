@@ -4,12 +4,14 @@ extends CanvasLayer
 @onready var score_label: Label = $ScoreLabel
 @onready var hint_label: Label = $HintLabel
 @onready var menu_button = $MenuButton
+@onready var confirm: ConfirmDialog = $ConfirmDialog
 
 var _banner: Label
 
 
 func _ready() -> void:
-	menu_button.pressed.connect(_on_menu_pressed)
+	menu_button.pressed.connect(request_exit)
+	confirm.confirmed.connect(_go_to_menu)
 
 	# Letrero grande para anunciar el cambio de nivel (se crea por código)
 	_banner = Label.new()
@@ -49,6 +51,10 @@ func show_banner(text: String) -> void:
 	t.tween_property(_banner, "modulate:a", 0.0, 0.5)
 
 
-## Vuelve al menú principal
-func _on_menu_pressed() -> void:
+## Pide confirmación antes de volver al menú (botón "Menú" y tecla Esc).
+func request_exit() -> void:
+	confirm.ask("¿Volver al menú?", "Si sales ahora perderás tu progreso de esta partida.", "Sí, salir", "Seguir jugando")
+
+
+func _go_to_menu() -> void:
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

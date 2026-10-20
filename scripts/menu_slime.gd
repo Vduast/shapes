@@ -1,6 +1,7 @@
 extends Node2D
-## Slime del menú principal: respira, cambia de color sin parar y reacciona al ratón.
-## Reutiliza monster.gdshader (el mismo slime del juego).
+## Slime del menú principal: respira, cambia de color sin parar, te sigue con la mirada y
+## reacciona al ratón (se emociona cerca, se sorprende y luego se alegra al tocarlo).
+## Reutiliza monster.gdshader (el mismo slime del juego) y SlimeFace para la cara.
 
 signal poked
 
@@ -23,6 +24,7 @@ var _squish := 0.0
 var _color_tween: Tween
 var _poke_tween: Tween
 var _mat: ShaderMaterial
+var _face: SlimeFace
 
 @onready var body: ColorRect = $Body
 
@@ -30,6 +32,7 @@ var _mat: ShaderMaterial
 func _ready() -> void:
 	_mat = (body.material as ShaderMaterial).duplicate()
 	body.material = _mat
+	_face = SlimeFace.new(_mat)
 	_set_color(GameData.mask_to_color(_pick_mask()))
 
 
@@ -44,6 +47,10 @@ func _process(delta: float) -> void:
 	_hover = lerpf(_hover, 1.0 if near else 0.0, 1.0 - exp(-10.0 * delta))
 	_mat.set_shader_parameter("excite", maxf(_excite, _hover * 0.6))
 	_mat.set_shader_parameter("squish", _squish)
+
+	# Cara: emocionado con el ratón cerca, tranquilo si no; siempre mira al ratón
+	var look := ((get_global_mouse_position() - global_position) / (300.0 * maxf(scale.x, 0.01))).limit_length(1.0)
+	_face.update(delta, SlimeFace.Mood.EXCITED if near else SlimeFace.Mood.IDLE, look)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -76,6 +83,7 @@ func poke() -> void:
 
 	_excite = 1.0
 	create_tween().tween_property(self, "_excite", 0.0, 0.7)
+	_face.play([[SlimeFace.Mood.SURPRISED, 0.35], [SlimeFace.Mood.HAPPY, 1.1]])
 	poked.emit()
 
 

@@ -2,7 +2,7 @@ extends Node2D
 
 const BURST := preload("res://scenes/paint_burst.tscn")
 
-## Nivel con el que empieza (0 a 3). Útil para probar.
+## Nivel con el que empieza (0 = primero; el tope lo marca GameData.STAGES). Útil para probar.
 @export var start_stage := 0
 
 @onready var monster = $Monster
@@ -26,10 +26,11 @@ func _ready() -> void:
 	_apply_stage(false)
 
 
-## Esc vuelve al menú principal
+## Esc pide volver al menú principal (el HUD muestra la confirmación; si ya está abierta,
+## es ella quien atiende el Esc para cancelar)
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+		hud.request_exit()
 
 
 func _apply_stage(celebrate: bool) -> void:
@@ -40,6 +41,7 @@ func _apply_stage(celebrate: bool) -> void:
 	hud.set_hint(cfg["hint"])
 	_update_hud()
 	if celebrate:
+		monster.celebrate()  # cara de fiesta mientras se come el bocado que subió de nivel
 		hud.show_banner("¡Nivel %d!  %s" % [stage + 1, cfg["name"]])
 		_confetti()
 

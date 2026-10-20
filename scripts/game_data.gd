@@ -27,13 +27,22 @@ const NAMES := {
 }
 
 ## Niveles. goal = aciertos para pasar al siguiente (0 = nivel final, infinito)
-## shapes: formas que puede pedir. masks: colores que puede pedir (vacío = cualquier color).
-## palette: si se muestran los botes de pintura.
+## shapes: formas que puede pedir (y que ofrece la bandeja). masks: colores que puede pedir
+## (vacío = cualquier color). palette: si se muestran los botes de pintura.
+## Para añadir un nivel basta con agregar otro diccionario; el último debe tener goal 0.
 const STAGES := [
 	{
 		"name": "Formas",
 		"hint": "Arrastra al slime la forma que pide",
 		"shapes": [0, 1, 2],
+		"masks": [],
+		"goal": 5,
+		"palette": false,
+	},
+	{
+		"name": "Nuevas formas",
+		"hint": "¡Llegaron la estrella y el corazón!",
+		"shapes": [0, 1, 2, 3, 4],
 		"masks": [],
 		"goal": 5,
 		"palette": false,
@@ -47,6 +56,30 @@ const STAGES := [
 		"palette": true,
 	},
 	{
+		"name": "Naranja",
+		"hint": "Rojo + amarillo = naranja. ¡Pinta la forma con los dos botes!",
+		"shapes": [0, 1, 2, 3, 4],
+		"masks": [3],
+		"goal": 4,
+		"palette": true,
+	},
+	{
+		"name": "Verde",
+		"hint": "Amarillo + azul = verde",
+		"shapes": [0, 1, 2, 3, 4],
+		"masks": [6],
+		"goal": 4,
+		"palette": true,
+	},
+	{
+		"name": "Morado",
+		"hint": "Azul + rojo = morado",
+		"shapes": [0, 1, 2, 3, 4],
+		"masks": [5],
+		"goal": 4,
+		"palette": true,
+	},
+	{
 		"name": "Solo Mezclas",
 		"hint": "¡Mezcla! Rojo+amarillo, amarillo+azul o azul+rojo",
 		"shapes": [0, 1, 2, 3, 4],
@@ -55,10 +88,34 @@ const STAGES := [
 		"palette": true,
 	},
 	{
+		"name": "Marrón",
+		"hint": "Mezcla los tres colores: rojo + amarillo + azul = marrón",
+		"shapes": [0, 1, 2, 3, 4],
+		"masks": [7],
+		"goal": 4,
+		"palette": true,
+	},
+	{
+		"name": "Estrellas y corazones",
+		"hint": "Solo piden estrellas y corazones, ¡de todos los colores!",
+		"shapes": [3, 4],
+		"masks": [1, 2, 4, 3, 6, 5, 7],
+		"goal": 6,
+		"palette": true,
+	},
+	{
 		"name": "¡Todo junto!",
 		"hint": "Pinta, mezcla y alimenta al slime",
 		"shapes": [0, 1, 2, 3, 4],
 		"masks": [1, 2, 4, 3, 6, 5],
+		"goal": 8,
+		"palette": true,
+	},
+	{
+		"name": "Maestro de colores",
+		"hint": "Todas las formas y todos los colores, sin fin",
+		"shapes": [0, 1, 2, 3, 4],
+		"masks": [1, 2, 4, 3, 6, 5, 7],
 		"goal": 0,
 		"palette": true,
 	},

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cfcl5x144e53y" path="res://scripts/monster.gd" id="1_script"]
 [ext_resource type="Shader" uid="uid://bkjd4p3pmj11s" path="res://shaders/monster.gdshader" id="2_shader"]
-[ext_resource type="PackedScene" path="res://scenes/request_bubble.tscn" id="3_bubble"]
+[ext_resource type="PackedScene" uid="uid://c7emqd4w14gfb" path="res://scenes/request_bubble.tscn" id="3_bubble"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
 radius = 140.0
@@ -15,6 +15,19 @@ shader_parameter/excite = 0.0
 shader_parameter/squish = 0.0
 shader_parameter/idle_squish = 0.05
 shader_parameter/idle_speed = 2.4
+shader_parameter/eye_open = 1.0
+shader_parameter/eye_happy = 0.0
+shader_parameter/eye_size = 1.5
+shader_parameter/shine = 1.0
+shader_parameter/brow = 0.0
+shader_parameter/blink = 0.0
+shader_parameter/look = Vector2(0, 0)
+shader_parameter/mouth_curve = 0.6
+shader_parameter/mouth_open = 0.18
+shader_parameter/mouth_width = 0.75
+shader_parameter/blush = 0.0
+shader_parameter/tears = 0.0
+shader_parameter/sparkle = 0.0
 
 [node name="Monster" type="Area2D" unique_id=714783032]
 input_pickable = false
