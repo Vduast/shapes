@@ -12,11 +12,21 @@ const NAVY := Color(0.07, 0.12, 0.38)
 		text = value
 		if _label:
 			_label.text = value
+
 @export var font_size := 34:
 	set(value):
 		font_size = value
 		if _label:
 			_label.add_theme_font_size_override("font_size", value)
+
+@export var font: Font:
+	set(value):
+		font = value
+		if _label:
+			if font:
+				_label.add_theme_font_override("font", font)
+			else:
+				_label.remove_theme_font_override("font")
 
 var _hover := 0.0
 var _press := 0.0
@@ -33,6 +43,8 @@ func _ready() -> void:
 	_label.text = text
 	_label.add_theme_font_size_override("font_size", font_size)
 	_label.add_theme_color_override("font_color", NAVY)
+	if font:
+		_label.add_theme_font_override("font", font)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	resized.connect(_on_resized)
