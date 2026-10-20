@@ -1,8 +1,22 @@
 [gd_scene format=3 uid="uid://bn8n7hqpptkxc"]
 
 [ext_resource type="Script" uid="uid://dv6wvag7c4ejy" path="res://scripts/hud.gd" id="1_script"]
-[ext_resource type="PackedScene" path="res://scenes/cream_button.tscn" id="2_button"]
+[ext_resource type="PackedScene" uid="uid://6r26arq32ceh" path="res://scenes/cream_button.tscn" id="2_button"]
+[ext_resource type="FontFile" uid="uid://ble7sfbjah0ci" path="res://fonts/BadComic-Regular.otf" id="2_uo2fv"]
 [ext_resource type="PackedScene" path="res://scenes/confirm_dialog.tscn" id="3_confirm"]
+[ext_resource type="Shader" uid="uid://b1txrl7mann" path="res://shaders/menu_button.gdshader" id="4_047uy"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5pdws"]
+resource_local_to_scene = true
+shader = ExtResource("4_047uy")
+shader_parameter/rect_size = Vector2(380, 80)
+shader_parameter/fill_color = Color(1, 0.94, 0.78, 1)
+shader_parameter/slab_color = Color(0.9, 0.74, 0.5, 1)
+shader_parameter/outline_color = Color(0.07, 0.12, 0.38, 1)
+shader_parameter/hover = 0.0
+shader_parameter/press = 0.0
+shader_parameter/radius = 28.0
+shader_parameter/outline_width = 4.0
 
 [node name="HUD" type="CanvasLayer" unique_id=763234677]
 script = ExtResource("1_script")
@@ -12,20 +26,22 @@ offset_left = 24.0
 offset_top = 16.0
 offset_right = 300.0
 offset_bottom = 60.0
+theme_override_fonts/font = ExtResource("2_uo2fv")
 theme_override_font_sizes/font_size = 30
 text = "Puntos: 0"
 
 [node name="HintLabel" type="Label" parent="." unique_id=365665059]
-visible = false
 offset_left = 340.0
 offset_top = 20.0
 offset_right = 1256.0
 offset_bottom = 60.0
+theme_override_fonts/font = ExtResource("2_uo2fv")
 theme_override_font_sizes/font_size = 18
 text = "1) Elige un bote  2) Toca una figura para pintarla (se mezclan)  3) Arrástrala al monstruo"
 horizontal_alignment = 2
 
-[node name="MenuButton" parent="." instance=ExtResource("2_button")]
+[node name="MenuButton" parent="." unique_id=1399582833 instance=ExtResource("2_button")]
+material = SubResource("ShaderMaterial_5pdws")
 custom_minimum_size = Vector2(150, 56)
 offset_left = 24.0
 offset_top = 650.0
@@ -34,4 +50,4 @@ offset_bottom = 706.0
 text = "Menú"
 font_size = 26
 
-[node name="ConfirmDialog" parent="." instance=ExtResource("3_confirm")]
+[node name="ConfirmDialog" parent="." unique_id=736857161 instance=ExtResource("3_confirm")]
