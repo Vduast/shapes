@@ -2,7 +2,19 @@
 
 [ext_resource type="Script" path="res://scripts/shape_tray.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/shape.tscn" id="2_shape"]
+[ext_resource type="Shader" path="res://shaders/tray.gdshader" id="3_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+shader = ExtResource("3_shader")
 
 [node name="ShapeTray" type="Node2D"]
 script = ExtResource("1_script")
 shape_scene = ExtResource("2_shape")
+
+[node name="Board" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_1")
+offset_left = -426.0
+offset_top = -94.0
+offset_right = 426.0
+offset_bottom = 94.0
+mouse_filter = 2

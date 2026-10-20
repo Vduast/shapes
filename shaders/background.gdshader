@@ -1,3 +1,6 @@
+
+
+
 shader_type canvas_item;
 // Fondo con degradado, puntitos que parpadean y un piso.
 

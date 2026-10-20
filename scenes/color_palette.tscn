@@ -2,9 +2,21 @@
 
 [ext_resource type="Script" path="res://scripts/color_palette.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/paint_bucket.tscn" id="2_bucket"]
+[ext_resource type="Shader" path="res://shaders/palette_board.gdshader" id="3_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+shader = ExtResource("3_shader")
 
 [node name="Palette" type="Node2D"]
 script = ExtResource("1_script")
+
+[node name="Board" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_1")
+offset_left = -94.0
+offset_top = -84.0
+offset_right = 94.0
+offset_bottom = 564.0
+mouse_filter = 2
 
 [node name="Red" parent="." instance=ExtResource("2_bucket")]
 mask = 1

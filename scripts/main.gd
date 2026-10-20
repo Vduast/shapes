@@ -26,6 +26,12 @@ func _ready() -> void:
 	_apply_stage(false)
 
 
+## Esc vuelve al menú principal
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+
 func _apply_stage(celebrate: bool) -> void:
 	var cfg: Dictionary = GameData.STAGES[stage]
 	monster.set_stage(stage, not celebrate)  # en un cambio de nivel, la nueva petición llega al terminar de comer

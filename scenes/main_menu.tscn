@@ -1,0 +1,156 @@
+[gd_scene format=3 uid="uid://dt1pl44cl1uiq"]
+
+[ext_resource type="Script" uid="uid://cvpclgbhgvrs6" path="res://scripts/main_menu.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/background.tscn" id="2_bg"]
+[ext_resource type="PackedScene" path="res://scenes/menu_slime.tscn" id="3_slime"]
+[ext_resource type="Shader" uid="uid://bix21ojmxtp56" path="res://shaders/menu_panel.gdshader" id="4_panel"]
+[ext_resource type="Script" uid="uid://dolf51oxp56ye" path="res://scripts/animated_title.gd" id="5_title"]
+[ext_resource type="PackedScene" path="res://scenes/cream_button.tscn" id="6_button"]
+[ext_resource type="Shader" uid="uid://b1txrl7mann" path="res://shaders/menu_button.gdshader" id="7_oa1go"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_panel"]
+shader = ExtResource("4_panel")
+shader_parameter/rect_size = Vector2(500, 580)
+shader_parameter/radius = 42.0
+shader_parameter/pad = 14.0
+shader_parameter/border_width = 7.0
+shader_parameter/fill_color = Color(1, 0.96, 0.88, 0.55)
+shader_parameter/border_color = Color(1, 0.97, 0.86, 0.95)
+shader_parameter/shadow_color = Color(0.04, 0.02, 0.14, 0.45)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tbmy8"]
+resource_local_to_scene = true
+shader = ExtResource("7_oa1go")
+shader_parameter/rect_size = Vector2(380, 80)
+shader_parameter/fill_color = Color(1, 0.94, 0.78, 1)
+shader_parameter/slab_color = Color(0.9, 0.74, 0.5, 1)
+shader_parameter/outline_color = Color(0.07, 0.12, 0.38, 1)
+shader_parameter/hover = 0.0
+shader_parameter/press = 0.0
+shader_parameter/radius = 28.0
+shader_parameter/outline_width = 4.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jk1qb"]
+resource_local_to_scene = true
+shader = ExtResource("7_oa1go")
+shader_parameter/rect_size = Vector2(380, 80)
+shader_parameter/fill_color = Color(1, 0.94, 0.78, 1)
+shader_parameter/slab_color = Color(0.9, 0.74, 0.5, 1)
+shader_parameter/outline_color = Color(0.07, 0.12, 0.38, 1)
+shader_parameter/hover = 0.0
+shader_parameter/press = 0.0
+shader_parameter/radius = 28.0
+shader_parameter/outline_width = 4.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5dd4i"]
+resource_local_to_scene = true
+shader = ExtResource("7_oa1go")
+shader_parameter/rect_size = Vector2(380, 80)
+shader_parameter/fill_color = Color(1, 0.94, 0.78, 1)
+shader_parameter/slab_color = Color(0.9, 0.74, 0.5, 1)
+shader_parameter/outline_color = Color(0.07, 0.12, 0.38, 1)
+shader_parameter/hover = 0.0
+shader_parameter/press = 0.0
+shader_parameter/radius = 28.0
+shader_parameter/outline_width = 4.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lgwnu"]
+resource_local_to_scene = true
+shader = ExtResource("7_oa1go")
+shader_parameter/rect_size = Vector2(380, 80)
+shader_parameter/fill_color = Color(1, 0.94, 0.78, 1)
+shader_parameter/slab_color = Color(0.9, 0.74, 0.5, 1)
+shader_parameter/outline_color = Color(0.07, 0.12, 0.38, 1)
+shader_parameter/hover = 0.0
+shader_parameter/press = 0.0
+shader_parameter/radius = 28.0
+shader_parameter/outline_width = 4.0
+
+[node name="MainMenu" type="Node2D" unique_id=1276523364]
+script = ExtResource("1_script")
+
+[node name="Background" parent="." unique_id=102835793 instance=ExtResource("2_bg")]
+
+[node name="Decor" type="Node2D" parent="." unique_id=488396017]
+
+[node name="Slime" parent="." unique_id=1560809232 instance=ExtResource("3_slime")]
+position = Vector2(905, 420)
+scale = Vector2(1.35, 1.35)
+
+[node name="Panel" type="ColorRect" parent="." unique_id=2029829835]
+material = SubResource("ShaderMaterial_panel")
+offset_left = 48.0
+offset_top = 70.0
+offset_right = 548.0
+offset_bottom = 650.0
+mouse_filter = 2
+
+[node name="Title" type="Control" parent="Panel" unique_id=870741135]
+anchors_preset = 0
+offset_top = 34.0
+offset_right = 500.0
+offset_bottom = 164.0
+mouse_filter = 2
+script = ExtResource("5_title")
+
+[node name="Subtitle" type="Label" parent="Panel" unique_id=1994636880]
+layout_mode = 0
+offset_top = 168.0
+offset_right = 500.0
+offset_bottom = 208.0
+theme_override_colors/font_color = Color(0.07, 0.12, 0.38, 1)
+theme_override_font_sizes/font_size = 26
+text = "¡Dale de comer al slime!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Buttons" type="VBoxContainer" parent="Panel" unique_id=1334835062]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 236.0
+offset_right = 440.0
+offset_bottom = 524.0
+theme_override_constants/separation = 24
+
+[node name="PlayButton" parent="Panel/Buttons" unique_id=1031262383 instance=ExtResource("6_button")]
+material = SubResource("ShaderMaterial_tbmy8")
+layout_mode = 2
+text = "Jugar"
+font_size = 38
+
+[node name="HelpButton" parent="Panel/Buttons" unique_id=346969317 instance=ExtResource("6_button")]
+material = SubResource("ShaderMaterial_jk1qb")
+layout_mode = 2
+text = "Cómo jugar"
+
+[node name="QuitButton" parent="Panel/Buttons" unique_id=777167305 instance=ExtResource("6_button")]
+material = SubResource("ShaderMaterial_5dd4i")
+layout_mode = 2
+text = "Salir"
+
+[node name="Help" type="VBoxContainer" parent="Panel" unique_id=206622340]
+visible = false
+layout_mode = 0
+offset_left = 52.0
+offset_top = 176.0
+offset_right = 448.0
+offset_bottom = 524.0
+theme_override_constants/separation = 16
+
+[node name="HelpLabel" type="Label" parent="Panel/Help" unique_id=1373736426]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.07, 0.12, 0.38, 1)
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 22
+text = "1. Mira qué figura (y qué color) pide el slime.
+2. Arrastra la figura desde la bandeja hasta el slime.
+3. Con los botes de pintura puedes colorearla. ¡Los colores se mezclan!
+4. El borrador quita las figuras que sobran."
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="BackButton" parent="Panel/Help" unique_id=1765735211 instance=ExtResource("6_button")]
+material = SubResource("ShaderMaterial_lgwnu")
+layout_mode = 2
+text = "Volver"

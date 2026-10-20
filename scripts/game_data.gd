@@ -47,10 +47,10 @@ const STAGES := [
 		"palette": true,
 	},
 	{
-		"name": "Mezclas",
+		"name": "Solo Mezclas",
 		"hint": "¡Mezcla! Rojo+amarillo, amarillo+azul o azul+rojo",
 		"shapes": [0, 1, 2, 3, 4],
-		"masks": [1, 2, 4, 3, 6, 5],
+		"masks": [3, 6, 5],
 		"goal": 6,
 		"palette": true,
 	},

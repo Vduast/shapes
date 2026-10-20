@@ -17,7 +17,7 @@ script = ExtResource("1_script")
 position = Vector2(610, 229)
 
 [node name="Palette" parent="." unique_id=1777340112 instance=ExtResource("4_palette")]
-position = Vector2(1101, 136)
+position = Vector2(1150, 136)
 
 [node name="ShapeTray" parent="." unique_id=2077373426 instance=ExtResource("5_tray")]
 position = Vector2(640, 620)

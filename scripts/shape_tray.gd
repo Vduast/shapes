@@ -1,17 +1,31 @@
 class_name ShapeTray
 extends Node2D
+## Bandeja con las figuras plantilla del nivel actual. El tablero (Board) lo dibuja
+## tray.gdshader: crece o se encoge según cuántas figuras ofrezca el nivel y deja un
+## hueco (cuna) debajo de cada figura.
 
 @export var shape_scene: PackedScene
-@export var spacing := 170.0
+## Separación entre figuras (px). tray.gdshader usa el mismo valor para los huecos.
+@export var spacing := 160.0
 ## Segundos que dura una figura suelta antes de desaparecer (0 = nunca)
 @export var shape_lifetime := 45.0
+## Alto visible del tablero (sin contar el margen de la sombra)
+@export var board_height := 160.0
+## Espacio entre la primera/última figura y el borde del tablero
+@export var board_side := 92.0
+
+const BOARD_PAD := 14.0  # debe coincidir con `pad` en tray.gdshader
 
 var _allowed: Array = []
 var _templates := {}  # tipo -> figura plantilla que está en la bandeja
+var _board_n := 0.0   # cuántas casillas muestra el tablero (float para animarlo)
+var _board_tween: Tween
+
+@onready var board: ColorRect = $Board
 
 
 ## Define qué figuras ofrece la bandeja. Quita las que sobran, crea las que
-## faltan y reacomoda todas centradas.
+## faltan, reacomoda todas centradas y ajusta el tablero.
 func set_allowed_shapes(types: Array, animate: bool = true) -> void:
 	_allowed = types.duplicate()
 	_allowed.sort()
@@ -30,6 +44,7 @@ func set_allowed_shapes(types: Array, animate: bool = true) -> void:
 			_spawn(type, animate)
 
 	_layout(animate)
+	_update_board(animate)
 
 
 func _slot_x(type: int) -> float:
@@ -46,6 +61,30 @@ func _layout(animate: bool) -> void:
 				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		else:
 			s.position = pos
+
+
+## Anima el tablero hacia el número de casillas del nivel (misma curva que las figuras).
+func _update_board(animate: bool) -> void:
+	var target := float(_allowed.size())
+	if _board_tween:
+		_board_tween.kill()
+	if animate:
+		_board_tween = create_tween()
+		_board_tween.tween_method(_set_board_slots, _board_n, target, 0.3) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	else:
+		_set_board_slots(target)
+
+
+func _set_board_slots(n: float) -> void:
+	_board_n = n
+	var visible_w := maxf(n - 1.0, 0.0) * spacing + board_side * 2.0
+	board.size = Vector2(visible_w + BOARD_PAD * 2.0, board_height + BOARD_PAD * 2.0)
+	board.position = -board.size / 2.0
+	var mat := board.material as ShaderMaterial
+	mat.set_shader_parameter("rect_size", board.size)
+	mat.set_shader_parameter("slot_count", n)
+	mat.set_shader_parameter("slot_spacing", spacing)
 
 
 func _spawn(type: int, animate: bool = true) -> void:

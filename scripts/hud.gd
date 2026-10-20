@@ -3,11 +3,14 @@ extends CanvasLayer
 
 @onready var score_label: Label = $ScoreLabel
 @onready var hint_label: Label = $HintLabel
+@onready var menu_button = $MenuButton
 
 var _banner: Label
 
 
 func _ready() -> void:
+	menu_button.pressed.connect(_on_menu_pressed)
+
 	# Letrero grande para anunciar el cambio de nivel (se crea por código)
 	_banner = Label.new()
 	_banner.add_theme_font_size_override("font_size", 56)
@@ -44,3 +47,8 @@ func show_banner(text: String) -> void:
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_interval(1.6)
 	t.tween_property(_banner, "modulate:a", 0.0, 0.5)
+
+
+## Vuelve al menú principal
+func _on_menu_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
