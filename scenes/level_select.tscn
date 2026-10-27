@@ -19,7 +19,7 @@ shader_parameter/fill_color = Color(1, 0.96, 0.88, 0.72)
 shader_parameter/border_color = Color(1, 0.97, 0.86, 0.95)
 shader_parameter/shadow_color = Color(0.04, 0.02, 0.14, 0.45)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_htctk"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7plkq"]
 resource_local_to_scene = true
 shader = ExtResource("7_o2xx4")
 shader_parameter/rect_size = Vector2(380, 80)
@@ -31,7 +31,7 @@ shader_parameter/press = 0.0
 shader_parameter/radius = 28.0
 shader_parameter/outline_width = 4.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_s6tf7"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ckc44"]
 resource_local_to_scene = true
 shader = ExtResource("7_o2xx4")
 shader_parameter/rect_size = Vector2(380, 80)
@@ -103,7 +103,7 @@ theme_override_constants/v_separation = 24
 columns = 3
 
 [node name="BackButton" parent="Panel" unique_id=1929594771 instance=ExtResource("4_button")]
-material = SubResource("ShaderMaterial_htctk")
+material = SubResource("ShaderMaterial_7plkq")
 layout_mode = 0
 offset_left = 60.0
 offset_top = 546.0
@@ -113,7 +113,7 @@ text = "Volver"
 font_size = 30
 
 [node name="ResetButton" parent="Panel" unique_id=1821043222 instance=ExtResource("4_button")]
-material = SubResource("ShaderMaterial_s6tf7")
+material = SubResource("ShaderMaterial_ckc44")
 layout_mode = 0
 offset_left = 680.0
 offset_top = 546.0
