@@ -22,11 +22,18 @@ func _ready() -> void:
 	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_banner.size = Vector2(1280, 90)
-	_banner.position = Vector2(0, 230)
-	_banner.pivot_offset = _banner.size / 2.0
 	_banner.modulate.a = 0.0
 	add_child(_banner)
+	_fit_banner()
+	get_viewport().size_changed.connect(_fit_banner)
+
+
+## El letrero ocupa todo el ancho visible (la pantalla del celular puede ser más ancha que 1280)
+func _fit_banner() -> void:
+	var vp := get_viewport().get_visible_rect().size
+	_banner.size = Vector2(vp.x, 90)
+	_banner.position = Vector2(0, 230 + maxf(vp.y - 720.0, 0.0) * 0.5)
+	_banner.pivot_offset = _banner.size / 2.0
 
 
 func set_progress(level: int, done: int, goal: int) -> void:

@@ -126,3 +126,6 @@ font_size = 24
 layer = 10
 
 [node name="ConfirmDialog" parent="ConfirmLayer" unique_id=795548521 instance=ExtResource("5_confirm")]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=222030631]
+position = Vector2(640, 360)

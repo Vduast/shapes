@@ -52,7 +52,7 @@ SHAPES es un juego de arrastrar y soltar con **once niveles** progresivos (forma
 - Una **paleta** (`Palette`) a la derecha con 3 botes de pintura (rojo, amarillo, azul) y un bote de "Limpiar". Se activa a partir del nivel 3.
 - Un **borrador** (`Eraser`) a la izquierda para deshacerse de las figuras que sobran.
 - Un **menú de niveles** (`level_select.tscn`) que se arma solo a partir de `GameData.STAGES` y un **guardado** (`SaveData`) del nivel más alto alcanzado: el botón *Jugar* pasa a *Continuar* y los niveles se desbloquean al llegar a ellos.
-- **Sonido 100 % procedural** (`Sound`, autoload): efectos y música en bucle generados por código, con soporte para reemplazarlos o ampliarlos con tus propios archivos (ver [sound_manager.gd](#sound_managergd)).
+- **Sonido 100 % procedural** (clase `Sound` + `SoundManager`): efectos y música en bucle generados por código, con soporte para reemplazarlos o ampliarlos con tus propios archivos (ver [sound_manager.gd](#sound_managergd)).
 - Una **mano fantasma** (`TutorialGhost`) que, al empezar cada nivel, muestra sin palabras cómo cumplir lo que pide el slime (ver [tutorial_ghost.gd](#tutorial_ghostgd)).
 - Un **HUD** con el nivel, el progreso, el botón **Menú** (pide confirmación antes de salir) y un letrero grande que anuncia cada nivel nuevo.
 - Mucho "juice" (sensación de gelatina): resortes que inclinan y estiran las figuras al moverlas, gotas de pintura que escurren, estallidos de chispas y un slime que respira, se agita y se aplasta al comer.
@@ -98,7 +98,8 @@ SHAPES es un juego de arrastrar y soltar con **once niveles** progresivos (forma
 | Interacción | `Area2D` con `input_pickable` + detección de solapamientos (`get_overlapping_areas()`) |
 | Animación | `Tween` + resortes subamortiguados calculados a mano en `_process` |
 | Plugins de editor | `script-ide` (solo editor, no forma parte del juego) |
-| Alcance | Sin red, sin audio y sin autoloads; el proyecto no incluye presets de exportación |
+| Alcance | Sin red, sin archivos de audio obligatorios (el sonido es procedural; se pueden añadir los tuyos en `audio/`) y sin autoloads |
+| Exportación | `export_presets.cfg` con un preset **Android** (APK arm64-v8a, `all_resources`, modo inmersivo activado) |
 
 ---
 
@@ -125,10 +126,13 @@ shapes/
 │   ├── hud.tscn             #   Interfaz (nivel, progreso, botón Menú, diálogo)
 │   ├── paint_burst.tscn     #   Efecto: anillo + chispas
 │   └── paint_drop.tscn      #   Efecto: gota de pintura
-├── scripts/                 # Lógica en GDScript (un .gd por escena + game_data.gd, slime_face.gd, save_data.gd y sound_manager.gd)
+├── scripts/                 # Lógica en GDScript (un .gd por escena + game_data.gd, slime_face.gd, save_data.gd, sound.gd y sound_manager.gd)
 ├── shaders/                 # 13 shaders .gdshader (todo el arte del juego)
 ├── audio/                   # (opcional) tus propios sonidos y música; ver audio/README.md
 ├── addons/script-ide/       # Plugin de editor (no afecta al juego)
+├── fonts/                   # Tipografía BadComic (Regular e Italic) usada en botones, menús y diálogos
+├── audio/music/             # Menu.ogg y Game.ogg: música propia que reemplaza a la procedural
+├── export_presets.cfg       # Preset de exportación a Android
 ├── icon.svg
 └── project.godot            # Configuración del proyecto
 ```
@@ -145,16 +149,16 @@ shapes/
 |---|---|
 | Nombre de la aplicación | `Shapes` |
 | Escena principal | `res://scenes/main_menu.tscn` (**Jugar/Continuar** carga `res://scenes/main.tscn`; **Niveles** carga `res://scenes/level_select.tscn`) |
-| Autoload | `Sound` → `res://scripts/sound_manager.gd` |
 | Guardado | `user://shapes_save.cfg` (ConfigFile) |
 | Versión de Godot | `4.7` (Forward Plus) |
 | Resolución base | `1280 x 720` |
-| Modo de estiramiento | `canvas_items`, aspecto `expand` (la interfaz se escala con la ventana) |
+| Modo de estiramiento | `canvas_items`, aspecto `expand` (la interfaz se escala con la ventana y, si es más ancha o más alta que 16:9, muestra espacio extra en vez de barras negras) |
+| Orientación (Android) | `window/handheld/orientation = 4` (horizontal por sensor: se puede girar a cualquiera de los dos lados horizontales) |
 | Plugin de editor habilitado | `script-ide` |
 | Motor de física 3D | `Jolt Physics` (no se usa: el juego es 2D) |
 | Driver de renderizado (Windows) | `d3d12` |
 
-El proyecto define **un solo autoload, `Sound`** (`scripts/sound_manager.gd`, sección `[autoload]` de `project.godot`), que también crea en tiempo de ejecución los buses de audio `Music` y `SFX`. No define grupos globales ni acciones de entrada propias. El input del juego es de ratón y se procesa dentro de cada `Area2D`; la única tecla usada es `ui_cancel` (Esc), una acción que Godot ya trae: en el juego pide volver al menú, en el menú cierra "Cómo jugar", en el menú de niveles vuelve al menú y en el diálogo de confirmación cancela.
+El proyecto **no define autoloads, grupos globales ni acciones de entrada propias**. El sonido se usa a través de la clase estática `Sound` (`scripts/sound.gd`), que crea sola el nodo `SoundManager` y los buses de audio `Music` y `SFX` en tiempo de ejecución. El input del juego es de ratón y se procesa dentro de cada `Area2D`; la única tecla usada es `ui_cancel` (Esc), una acción que Godot ya trae: en el juego pide volver al menú, en el menú cierra "Cómo jugar", en el menú de niveles vuelve al menú y en el diálogo de confirmación cancela.
 
 ---
 
@@ -164,7 +168,7 @@ El proyecto define **un solo autoload, `Sound`** (`scripts/sound_manager.gd`, se
 
 ```
 Main (Node2D, main.gd)
-├── Background          (ColorRect + background.gdshader)
+├── Background          (ColorRect + background.gdshader + background.gd)
 ├── Monster             (Area2D, monster.gd)        pos (610, 229)
 │   ├── Collision       (círculo r=140)
 │   ├── Body            (ColorRect 340×340 + monster.gdshader)
@@ -288,6 +292,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 | `_process(delta)` | Cuenta regresiva del tutorial (`_tutorial_wait`) y, si el jugador lleva `HELP_AFTER` = 15 s sin clics, lo repite como ayuda. No corre con el diálogo de confirmación abierto. |
 | `_play_tutorial()` | Llama a `ghost.play(monster.wanted_shape, monster.wanted_mask, tray, palette, absorb_point)`. Si el slime está comiendo o hay un clic presionado, espera 0.4 s. |
 | `_on_request_changed(...)` | Con la primera petición de un nivel, programa el tutorial (`TUTORIAL_FIRST_DELAY` 0.8 s / `TUTORIAL_STAGE_DELAY` 1.6 s). |
+| `_fit_to_screen()` | Al iniciar y cada vez que cambia el tamaño de la ventana: con pantallas más anchas que 1280 reparte el espacio extra pegando la paleta a la derecha y el borrador a la izquierda. |
 | `_unhandled_input(event)` | Con `ui_cancel` (Esc) llama a `hud.request_exit()`, que abre la confirmación. Si el diálogo ya está abierto, este Esc nunca llega aquí: el diálogo lo consume antes para cancelar. |
 | `_apply_stage(celebrate)` | Configura el nivel actual: `monster.set_stage(stage, not celebrate)`, `palette.set_enabled(cfg.palette, celebrate)`, `tray.set_allowed_shapes(cfg.shapes, celebrate)`, la pista del HUD y el progreso. Con `celebrate = true` (cambio de nivel) además llama a `monster.celebrate()` (el slime festeja con la cara grande al terminar de comer), muestra el letrero `¡Nivel N!  Nombre` y lanza el confeti. En un cambio de nivel el slime **no** cambia de petición al instante: la nueva llega cuando termina de comer. |
 | `_update_hud()` | Envía al HUD nivel, aciertos y meta. |
@@ -515,7 +520,7 @@ Una **guía de puntitos** (`_draw`) marca los caminos y los puntos "corren" haci
 
 | Función | Descripción |
 |---|---|
-| `_ready()` | Conecta el botón **Menú** y el `confirmed` del diálogo, y crea **por código** un `Label` grande (fuente 56, blanco con contorno morado oscuro de 14 px, centrado, 1280×90 en (0, 230), ignora el ratón, transparente) para anunciar cada nivel. |
+| `_ready()` | Conecta el botón **Menú** y el `confirmed` del diálogo, y crea **por código** un `Label` grande (fuente 56, blanco con contorno morado oscuro de 14 px, centrado, ignora el ratón, transparente) para anunciar cada nivel. `_fit_banner()` le da todo el ancho visible (alto 90, y = 230) y se repite cuando cambia el tamaño de la ventana. |
 | `set_progress(level, done, goal)` | Si hay meta, muestra `Nivel N   hechos/meta`; en el nivel final (meta 0) muestra `Nivel N   ★ hechos`. |
 | `set_hint(text)` | Cambia el texto de la pista (`HintLabel`). |
 | `is_dialog_open()` | `true` si la ventana de confirmación está abierta (el tutorial se pausa). |
@@ -569,7 +574,7 @@ Una **guía de puntitos** (`_draw`) marca los caminos y los puntos "corren" haci
 ---
 
 ### `cream_button.gd`
-**Clase:** `CreamButton` — **Hereda de:** `ColorRect`. Botón crema dibujado por `menu_button.gdshader` con texto azul oscuro. Emite `pressed` al soltar el clic izquierdo con el ratón encima. Crece con el hover, se hunde al presionar y "tiembla" suave. **Exportados:** `text`, `font_size`, `disabled` (se ve apagado y no emite `pressed`; al intentar presionarlo tiembla y suena `locked`) y `emphasized` (se ve "iluminado" y respira, para destacar una opción). Suena `hover` al pasar el ratón y `click` al presionar. Lo usan el menú, el botón **Menú** del HUD y el diálogo de confirmación.
+**Clase:** `CreamButton` — **Hereda de:** `ColorRect`. Botón crema dibujado por `menu_button.gdshader` con texto azul oscuro. Emite `pressed` al soltar el clic izquierdo con el ratón encima. Crece con el hover, se hunde al presionar y "tiembla" suave. **Exportados:** `text`, `font_size`, `disabled` (se ve apagado y no emite `pressed`; al intentar presionarlo tiembla y suena `locked`) y `emphasized` (se ve "iluminado" y respira, para destacar una opción). Suena `hover` al pasar el ratón y `click` al presionar. El texto usa la fuente `fonts/BadComic-Regular.otf` (asignada en el `Label` de `cream_button.tscn`). Lo usan el menú, el botón **Menú** del HUD y el diálogo de confirmación.
 
 ---
 
@@ -614,7 +619,7 @@ Una **guía de puntitos** (`_draw`) marca los caminos y los puntos "corren" haci
 ---
 
 ### `sound_manager.gd`
-**Autoload:** `Sound` — **Hereda de:** `Node`. Todo el sonido del juego, **sin archivos de audio**: se sintetiza por código y se guarda en caché. Crea los buses `Music` y `SFX` y un grupo de 10 `AudioStreamPlayer` para los efectos (10 a la vez).
+**Clases:** `Sound` (`sound.gd`, fachada estática que usa el resto del juego) y `SoundManager` (`sound_manager.gd`, **Hereda de:** `Node`, el motor). `Sound` crea un `SoundManager` la primera vez que se usa y lo cuelga de la raíz del árbol (con `call_deferred`, porque puede llamarse mientras la raíz monta la escena), así sobrevive a los cambios de escena y **no hace falta registrar ningún autoload**. Antes de que el nodo esté listo (el primer instante del juego) los efectos se ignoran y la música pedida queda pendiente y arranca sola. Todo el sonido del juego, **sin archivos de audio**: se sintetiza por código y se guarda en caché. Crea los buses `Music` y `SFX` y un grupo de 10 `AudioStreamPlayer` para los efectos (10 a la vez).
 
 **Efectos procedurales.** Cada efecto de la constante `SFX` es una lista de *capas* que se suman: `at` (inicio en s), `dur`, `f0`/`f1` (frecuencia inicial y final → barrido), `wave` (`SINE`, `TRI`, `SQUARE`, `SAW`, `NOISE`), `amp`, `atk`, `dec` (caída exponencial), `rel`, `vib_hz`/`vib` (vibrato) y `noise` (mezcla de ruido). `_render_layer()` genera la onda muestra por muestra y `_to_wav()` la convierte en un `AudioStreamWAV` de 16 bits a 22 050 Hz (con `tanh` como limitador). Se sintetizan una sola vez (en el arranque, un efecto por frame) y quedan en caché.
 
@@ -636,6 +641,8 @@ La mano fantasma del tutorial usa `pick`, `paint` y `eat` a −10 dB para no con
 **Poner tu propia música o sonidos** (ver también `audio/README.md`):
 - `audio/music/menu.ogg|mp3|wav` o `audio/music/game.ogg…` reemplazan las pistas procedurales y se ponen **en bucle solas** (`_loopable()` activa el bucle en una copia del stream).
 - `audio/sfx/<nombre>.ogg|mp3|wav` reemplaza al efecto procedural con ese nombre.
+- La búsqueda **no distingue mayúsculas** (Android sí las distingue en sus archivos) y al arrancar imprime en consola si cada pista usa un archivo propio o la procedural (`adb logcat -s godot` en Android).
+- **Para exportar:** los archivos deben estar **importados** (Godot convierte al importar, no al exportar: mira que tengan su `.import`), y el preset debe usar *Exportar todos los recursos del proyecto* o tener marcados los de `audio/`.
 - Cualquier pista nueva: `Sound.play_music("nombre")` busca `audio/music/nombre.*`; o directamente `Sound.play_music_stream(un_AudioStream)`.
 
 | Función | Descripción |
@@ -676,7 +683,7 @@ Escena de arranque (`Node2D`, `main_menu.gd`). Instancia `Background` y `Slime` 
 Nodo raíz `Main` (`Node2D`, `main.gd`). Instancia `Background`, `Monster` (610, 229), `Palette` (1150, 136), `ShapeTray` (640, 620), `Eraser` (93, 287), `TutorialGhost` y `HUD`, más una `Camera2D` en (643, 360). Es la única escena que conoce a todas las demás: conecta el slime con el progreso y reparte los cambios de nivel. La bandeja se llena desde `Main`: con 3 figuras (nivel 1) quedan en x = 480, 640 y 800; con 5 (niveles 2 al 8, 10 y 11) en x = 320, 480, 640, 800 y 960; y con 2 (nivel 9, estrella y corazón) en x = 560 y 720.
 
 ### `background.tscn` — fondo
-Un solo `ColorRect` de 1280×720 con `background.gdshader` y `mouse_filter = IGNORE` para no bloquear clics. No tiene script: todo es animación del shader (degradado ondulante, puntos que titilan y un piso oscuro desde el 80 % de la altura).
+Un solo `ColorRect` (1280×720 en el editor) con `background.gdshader`, el script `background.gd` y `mouse_filter = IGNORE` para no bloquear clics. El script lo **agranda cada frame para cubrir toda el área visible** (`get_canvas_transform().affine_inverse() * get_viewport_rect()`, así funciona con o sin `Camera2D`) y le pasa al shader su posición y tamaño (`rect_pos`, `rect_size`) para que el dibujo —degradado ondulante, puntos que titilan y un piso oscuro desde el 80 % de la altura del diseño— no se estire en pantallas más anchas.
 
 ### `monster.tscn` — slime
 `Area2D` (`monster.gd`, `input_pickable = false`) con:
@@ -720,7 +727,7 @@ Todos son `shader_type canvas_item`. La mayoría usa **campos de distancia con s
 
 | Shader | Usado por | Propósito |
 |---|---|---|
-| `background.gdshader` | `background.tscn` | Fondo morado animado con degradado, puntos titilantes y piso. |
+| `background.gdshader` | `background.tscn` | Fondo morado animado con degradado, puntos titilantes y piso; se dibuja en coordenadas del diseño 1280×720 y se extiende a cualquier tamaño de pantalla. |
 | `shape.gdshader` | `shape.tscn`, `paint_bucket.tscn`, `request_bubble.tscn` (`Item`) | Dibuja las 5 figuras con contorno, brillo, onda de pintura, resaltado y hover. |
 | `monster.gdshader` | `monster.tscn`, `menu_slime.tscn` | El slime: silueta orgánica, respiración, aplastamiento, sombra y **cara** (ojos, boca, mejillas). |
 | `bubble.gdshader` | `request_bubble.tscn` (`Bg`) | Globo de pensamiento. |
@@ -735,12 +742,14 @@ Todos son `shader_type canvas_item`. La mayoría usa **campos de distancia con s
 | `title_letter.gdshader` | `animated_title.gd` (una por letra) | Recolorea el relleno de cada letra del título con colores cambiantes. |
 
 ### `background.gdshader`
-**Uniforms:** `color_a` (morado oscuro `0.10, 0.08, 0.20`) y `color_b` (morado medio `0.24, 0.13, 0.40`).
+**Uniforms:** `color_a` (morado oscuro `0.10, 0.08, 0.20`), `color_b` (morado medio `0.24, 0.13, 0.40`), `rect_pos` y `rect_size` (los fija `background.gd`: esquina y tamaño del rectángulo en el mundo). El shader calcula un `uv` de diseño `(rect_pos + UV * rect_size) / (1280, 720)`, que vale 0..1 dentro del área original y sigue fuera de ella, así que degradado, puntos y piso se ven igual que siempre y simplemente continúan en el espacio extra.
 1. **Degradado ondulante:** mezcla `color_a` → `color_b` según `UV.y`, perturbado por `0.05 * sin(UV.x * 6 + TIME * 0.5)`, de modo que la frontera de color "respira".
 2. **Puntos que titilan:** divide la pantalla en una cuadrícula de 16×9 celdas; en el centro de cada una dibuja un puntito (`smoothstep` sobre la distancia al centro) cuyo brillo oscila con `sin(TIME + id.x * 3.1 + id.y * 1.7)`: la fase depende de la celda, así que no parpadean todos a la vez. Aportan un 5 % de luz.
 3. **Piso:** desde `UV.y = 0.80` mezcla el color hacia `color_a * 0.55` con un corte casi duro (`smoothstep(0.80, 0.81, ...)`).
 
 ### `shape.gdshader`
+**Tamaños:** el círculo mide 0.80 de diámetro, el cuadrado 0.72 y el triángulo 0.80 de lado (`sd_triangle(q + vec2(0.0, 0.05), 0.40)`, ajustado para que no se vea más chico que las demás figuras).
+
 **Uniforms:** `shape_type` (0 círculo, 1 cuadrado, 2 triángulo, 3 estrella, 4 corazón), `fill_color`, `old_color`, `wave` (0–1), `outline_color`, `outline` (grosor, 0.045), `selected` (0–1), `hover` (0–1; lo anima `shape.gd`).
 - **SDFs:** `sd_circle`, `sd_box` (cuadrado con esquinas redondeadas, radio 0.06), `sd_triangle`, `sd_star5` (estrella de 5 puntas) y `sd_heart`, estas tres basadas en las fórmulas de Inigo Quilez. Las coordenadas se voltean en Y (`q = (p.x, -p.y)`) para que las figuras queden derechas, y cada una se desplaza/escala para quedar centrada y del mismo tamaño visual.
 - **Onda de color:** el color nuevo se revela como un círculo que crece desde el centro: `reach = wave * 0.8`; el píxel muestra `fill_color` si está dentro del radio y `old_color` si no, con un borde suave de 0.1 (`smoothstep`). Con `wave >= 1.0` se salta el cálculo y muestra `fill_color` directo.
@@ -831,8 +840,10 @@ Como la amortiguación es baja respecto a la rigidez, el valor **sobrepasa y osc
 
 **Cambios recientes**
 - **Cara del slime con shaders:** `monster.gdshader` dibuja ojos, mejillas y boca (uniforms `eye_*`, `mouth_*`, `brow`, `blink`, `look`, `blush`) y la nueva clase `SlimeFace` (`scripts/slime_face.gd`) elige y anima la cara según la acción: emocionado con una figura encima, masticando y feliz al comer, festejo al subir de nivel, triste al rechazar, sorprendido al tocarlo en el menú y con sueño tras 14 s sin actividad. Parpadea y sigue el ratón con la mirada. `Monster` y `MenuSlime` la usan; `Main` llama a `monster.celebrate()` al subir de nivel.
+- **Tipografía y ajustes visuales propios:** fuentes `BadComic-Regular` (botones, subtítulos) y `BadComic-Italic` (títulos del diálogo de confirmación y del menú de niveles); botones del menú de 72 px de alto con separación 3, botón Menú del HUD de 72 px y triángulo más grande en `shape.gdshader`. Música propia `Menu.ogg` y `Game.ogg` en `audio/music/` (se encuentra aunque las mayúsculas del nombre no coincidan).
+- **Adaptación a distintas pantallas (Android):** `background.gd` hace que el fondo cubra toda el área visible (el shader ahora usa coordenadas del diseño), los menús y la escena de juego llevan una `Camera2D` centrada en (640, 360) para que el contenido quede al centro, `Main` pega la paleta y el borrador a los bordes en pantallas anchas, el botón Menú se ancla abajo a la izquierda y el letrero de nivel ocupa todo el ancho. Orientación horizontal por sensor en `project.godot`.
 - **Menú de niveles y guardado:** nueva escena `level_select.tscn` (+ `level_select.gd`) con una tarjeta por nivel de `GameData.STAGES` (superados con ★, actual con brillo, el resto bloqueados) y la clase estática `SaveData` que guarda en `user://shapes_save.cfg` el nivel más alto alcanzado. *Jugar* pasa a *Continuar*; `CreamButton` ganó `disabled` y `emphasized`.
-- **Sistema de sonido procedural:** nuevo autoload `Sound` (`sound_manager.gd`) con 13 efectos y 2 pistas de música en bucle generados por código (sin archivos), buses `Music`/`SFX`, volumen y silencio guardados, y la posibilidad de reemplazarlos o añadir los tuyos en `audio/`. Los sonidos están conectados a botones, figuras, botes, slime, menú y tutorial.
+- **Sistema de sonido procedural:** nueva clase `Sound` (`sound.gd`) sobre un `SoundManager` (`sound_manager.gd`) con 13 efectos y 2 pistas de música en bucle generados por código (sin archivos), buses `Music`/`SFX`, volumen y silencio guardados, y la posibilidad de reemplazarlos o añadir los tuyos en `audio/`. Los sonidos están conectados a botones, figuras, botes, slime, menú y tutorial.
 - **Tutorial con mano fantasma:** nueva escena `tutorial_ghost.tscn` (+ `tutorial_ghost.gd` y `ghost_hand.gdshader`). Al empezar cada nivel demuestra cómo cumplir la petición: agarra la figura de la bandeja, la pinta con los botes necesarios (se ve cómo se mezclan los colores) y se la lleva al slime. Se corta con el primer clic y reaparece como ayuda a los 15 s sin clics. Para esto se añadieron `Monster.request_changed` / `is_busy()`, `ShapeTray.slot_position()`, `ColorPalette.bucket_position()` y `HUD.is_dialog_open()`; `GameData` admite `"tutorial": false` por nivel y `Main` el export `tutorial`.
 - **Slime estilo Slime Rancher:** silueta de gominola con brillo lateral, ojos ovalados oscuros con dos brillos, boca en "D" con lengua y colores de cara derivados del color del cuerpo. Las expresiones son más exageradas (ojos llorosos, lágrimas, destellos de fiesta) y se controlan con los nuevos uniforms `shine`, `tears` y `sparkle`.
 - **Confirmación al volver al menú:** nueva escena `confirm_dialog.tscn` (+ `confirm_dialog.gd`) dentro del HUD. El botón **Menú** y la tecla Esc ya no cambian de escena directamente: llaman a `HUD.request_exit()` y solo **Sí, salir** vuelve al menú.
@@ -851,7 +862,7 @@ Como la amortiguación es baja respecto a la rigidez, el valor **sobrepasa y osc
 - **Los volúmenes y las notas de `SFX`/`MUSIC` son un punto de partida** y se ajustan en `sound_manager.gd`. La música procedural tarda un par de segundos en generarse al abrir el juego (corre en un hilo), así que el primer segundo del menú puede estar en silencio. Los sonidos de la mano fantasma, del hover y del tutorial son suaves a propósito.
 - **Al iniciar, el slime hace dos peticiones seguidas:** una en `Monster._ready()` y otra cuando `Main._ready()` aplica el nivel. Es inocuo (la segunda sustituye a la primera antes del primer frame).
 - **El texto del borrador** (`"Borrador"`) está escrito directamente en `eraser.tscn`, a diferencia de los botes, cuyo rótulo sale de `GameData`.
-- **El ancho del letrero de nivel** (`1280`) está fijo en `hud.gd`; con otra resolución base habría que cambiarlo o anclarlo.
+- **La adaptación a pantallas está pensada para formato horizontal.** El juego se diseñó para 1280×720 y el espacio extra de pantallas más anchas (20:9, etc.) se reparte a los lados: el fondo lo cubre, la paleta y el borrador se pegan a los bordes (`Main._fit_to_screen`) y el resto queda centrado. En pantallas más altas (4:3) el contenido queda centrado con fondo arriba y abajo. En celulares con muesca (*notch*) el marcador y el botón Menú podrían quedar tapados en una esquina: habría que usar `DisplayServer.get_display_safe_area()` para dejar un margen.
 - **Los límites de arrastre** usan `get_viewport_rect()`, que no considera la posición de la `Camera2D` (643, 360, 3 px a la derecha del centro). El margen de 50 px lo absorbe sin problemas.
 - `request_bubble.gd` está indentado con espacios; el resto de scripts usa tabulaciones. Funciona (cada archivo es coherente consigo mismo), pero conviene unificar.
 - El proyecto declara `Jolt Physics` como motor 3D, pero no hay ningún nodo 3D: el ajuste no tiene efecto.

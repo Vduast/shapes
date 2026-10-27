@@ -1,5 +1,8 @@
+class_name SoundManager
 extends Node
-## Sonido del juego (autoload "Sound"). Todo se GENERA por código, no hay archivos de audio:
+## Motor de sonido. No se usa directamente: la clase estática `Sound` (scripts/sound.gd) crea
+## una instancia suya, la cuelga de la raíz del árbol y le reenvía las llamadas, así que no
+## hace falta registrar ningún autoload. Todo se GENERA por código, no hay archivos de audio:
 ##  - Efectos: cada uno es una lista de "capas" (onda, barrido de frecuencia, envolvente)
 ##    que se sintetiza a un AudioStreamWAV la primera vez que se usa y se guarda en caché.
 ##  - Música: pistas compuestas por código (acordes, bajo, melodía y batería) que se
@@ -9,6 +12,7 @@ extends Node
 ##    (se pone en bucle solo). Ver audio/README.md.
 ##
 ## Uso:
+##   (se usa a través de la clase Sound; la API es la misma)
 ##   Sound.play("click")                       # efecto
 ##   Sound.play_varied("pick", 0.06)           # con el tono ligeramente al azar
 ##   Sound.play_music("game")                  # música en bucle (cambia con fundido)
@@ -116,6 +120,7 @@ var _next_voice := 0
 var _music_player: AudioStreamPlayer
 var _music_tween: Tween
 var _music_name := ""            # pista pedida
+var _pending_music := ""         # pista pedida antes de que el nodo estuviera listo
 var _music_cache := {}           # pista -> AudioStream
 var _building := {}              # pistas que se están generando en un hilo
 
@@ -139,8 +144,18 @@ func _ready() -> void:
 	# Las pistas procedurales empiezan a generarse ya, en segundo plano
 	for track in MUSIC:
 		if _load_file(MUSIC_DIR, track) == null:
+			print("Sound: pista '%s' -> procedural" % track)
 			_build_music_async(track)
+		else:
+			print("Sound: pista '%s' -> archivo propio de %s" % [track, MUSIC_DIR])
 	_warm_up()
+
+	# Si pidieron música antes de que este nodo estuviera listo, arranca ahora
+	if _pending_music != "":
+		var track := _pending_music
+		_pending_music = ""
+		_music_name = ""
+		play_music(track)
 
 
 ## Sintetiza los efectos poco a poco (un frame cada uno) para no trabar el arranque
@@ -165,6 +180,8 @@ func _setup_buses() -> void:
 
 ## Reproduce un efecto. pitch: 1.0 = normal; volume_db: 0 = normal.
 func play(sfx: String, pitch: float = 1.0, volume_db: float = 0.0) -> void:
+	if _voices.is_empty():
+		return  # el nodo aún no está listo (solo pasa en el primer instante del juego)
 	var stream := _get_sfx(sfx)
 	if stream == null:
 		return
@@ -199,6 +216,9 @@ func register_stream(sfx: String, stream: AudioStream) -> void:
 ## Música en bucle por nombre ("menu", "game" o una pista propia en res://audio/music/).
 ## Si ya está sonando no hace nada; si no, cambia con un fundido.
 func play_music(track: String) -> void:
+	if _music_player == null:
+		_pending_music = track
+		return
 	if track == _music_name and (_music_player.playing or _building.has(track)):
 		return
 	_music_name = track
@@ -220,12 +240,17 @@ func play_music(track: String) -> void:
 
 ## Música en bucle con cualquier AudioStream (se duplica y se le activa el bucle).
 func play_music_stream(stream: AudioStream, id: String = "custom") -> void:
+	if _music_player == null:
+		return
 	_music_name = id
 	_start_music(_loopable(stream))
 
 
 func stop_music(fade: float = 0.5) -> void:
 	_music_name = ""
+	_pending_music = ""
+	if _music_player == null:
+		return
 	if _music_tween:
 		_music_tween.kill()
 	_music_tween = create_tween()
@@ -299,11 +324,22 @@ func _loopable(stream: AudioStream) -> AudioStream:
 	return s
 
 
+## Busca dir/<file_name>.(ogg|mp3|wav) sin distinguir mayúsculas (Android sí las distingue).
+## En un juego exportado los recursos importados aparecen como "x.ogg.import", por eso se
+## recorta ese sufijo y se carga el recurso por su ruta original.
 func _load_file(dir: String, file_name: String) -> AudioStream:
-	for ext in EXTENSIONS:
-		var path: String = dir + file_name + "." + ext
+	var wanted := file_name.to_lower()
+	for f in DirAccess.get_files_at(dir):
+		var clean := f.trim_suffix(".import").trim_suffix(".remap")
+		if clean.get_basename().to_lower() != wanted:
+			continue
+		if not (clean.get_extension().to_lower() in EXTENSIONS):
+			continue
+		var path := dir + clean
 		if ResourceLoader.exists(path):
-			return load(path) as AudioStream
+			var res := load(path)
+			if res is AudioStream:
+				return res
 	return null
 
 

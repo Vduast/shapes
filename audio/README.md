@@ -27,3 +27,13 @@ Se recomienda **OGG** (el WAV funciona pero pesa mucho). Para que el bucle no te
 nombres incluidos: `click`, `hover`, `locked`, `pick`, `drop`, `paint`, `eat`, `happy`,
 `reject`, `levelup`, `pop`, `whoosh`, `sparkle`. Un nombre nuevo se usa igual:
 `Sound.play("mi_efecto")`.
+
+## Exportar a Android
+
+- Godot convierte el audio **al importar** (en el editor), no al exportar: comprueba que cada
+  archivo tenga su `.import` y vuelve a exportar.
+- En el preset, pestaña *Recursos*: *Exportar todos los recursos del proyecto*, o marca los
+  archivos de `audio/` si usas *Exportar recursos seleccionados*.
+- No importan las mayúsculas del nombre (`Menu.OGG` sirve), pero el nombre sí debe ser el de la
+  pista: `menu`, `game` o el que pidas con `Sound.play_music("nombre")`.
+- Al arrancar se imprime en consola qué pista usa archivo propio y cuál la procedural.

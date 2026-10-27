@@ -1,14 +1,18 @@
-
-
-
 shader_type canvas_item;
 // Fondo con degradado, puntitos que parpadean y un piso.
+// Se dibuja en coordenadas del "diseño" (1280x720) aunque el rectángulo sea más grande:
+// background.gd lo agranda para cubrir toda la pantalla (celulares más anchos que 16:9) y
+// aquí se calcula la posición en el mundo para que el dibujo no se estire.
 
 uniform vec4 color_a : source_color = vec4(0.10, 0.08, 0.20, 1.0);
 uniform vec4 color_b : source_color = vec4(0.24, 0.13, 0.40, 1.0);
+uniform vec2 rect_pos = vec2(0.0, 0.0);        // esquina del rectángulo en el mundo
+uniform vec2 rect_size = vec2(1280.0, 720.0);  // tamaño del rectángulo
 
 void fragment() {
-    vec2 uv = UV;
+    // uv del diseño: 0..1 dentro de 1280x720; fuera de ahí sigue (negativo o mayor a 1)
+    vec2 uv = (rect_pos + UV * rect_size) / vec2(1280.0, 720.0);
+
     float g = clamp(uv.y + 0.05 * sin(uv.x * 6.0 + TIME * 0.5), 0.0, 1.0);
     vec3 col = mix(color_a.rgb, color_b.rgb, g);
 

@@ -199,3 +199,6 @@ autowrap_mode = 3
 material = SubResource("ShaderMaterial_flqon")
 layout_mode = 2
 text = "Volver"
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(640, 360)

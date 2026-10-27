@@ -22,6 +22,10 @@ const HELP_AFTER := 15.0
 var stage := 0
 var progress := 0
 
+const DESIGN_WIDTH := 1280.0   # ancho para el que se diseñó la escena
+
+var _palette_x := 0.0           # posición original de la paleta y del borrador
+var _eraser_x := 0.0
 var _tutorial_pending := false   # el nivel acaba de empezar: falta lanzar su tutorial
 var _tutorial_wait := -1.0       # cuenta regresiva para lanzarlo (-1 = ninguna)
 var _tutorial_delay := TUTORIAL_FIRST_DELAY
@@ -42,7 +46,19 @@ func _ready() -> void:
 	SaveData.pending_stage = -1
 	stage = clampi(first, 0, GameData.STAGES.size() - 1)
 	Sound.play_music("game")
+	_palette_x = palette.position.x
+	_eraser_x = $Eraser.position.x
+	get_viewport().size_changed.connect(_fit_to_screen)
+	_fit_to_screen()
 	_apply_stage(false)
+
+
+## En pantallas más anchas que 16:9 (celulares) hay espacio extra a los lados: la paleta y el
+## borrador se pegan a los bordes y el resto queda centrado (la cámara está en el centro).
+func _fit_to_screen() -> void:
+	var extra := maxf(get_viewport_rect().size.x - DESIGN_WIDTH, 0.0)
+	palette.position.x = _palette_x + extra * 0.5
+	$Eraser.position.x = _eraser_x - extra * 0.5
 
 
 ## Cada clic del jugador cancela el tutorial que esté por salir y reinicia el contador de ayuda
