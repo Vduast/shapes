@@ -1,34 +1,16 @@
-[gd_scene format=3 uid="uid://pde5b8jnwqdk"]
+[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://cexxh5qylh7d1" path="res://scripts/menu_slime.gd" id="1_script"]
-[ext_resource type="Shader" uid="uid://bkjd4p3pmj11s" path="res://shaders/monster.gdshader" id="2_shader"]
+[ext_resource type="Script" path="res://scripts/menu_slime.gd" id="1_script"]
+[ext_resource type="Shader" path="res://shaders/monster.gdshader" id="2_shader"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
 resource_local_to_scene = true
 shader = ExtResource("2_shader")
-shader_parameter/body_color = Color(0.87, 0.27, 0.41, 1)
-shader_parameter/excite = 0.0
-shader_parameter/squish = 0.0
-shader_parameter/idle_squish = 0.05
-shader_parameter/idle_speed = 2.4
-shader_parameter/eye_open = 1.0
-shader_parameter/eye_happy = 0.0
-shader_parameter/eye_size = 1.5
-shader_parameter/shine = 1.0
-shader_parameter/brow = 0.0
-shader_parameter/blink = 0.0
-shader_parameter/look = Vector2(0, 0)
-shader_parameter/mouth_curve = 0.6
-shader_parameter/mouth_open = 0.18
-shader_parameter/mouth_width = 0.75
-shader_parameter/blush = 0.0
-shader_parameter/tears = 0.0
-shader_parameter/sparkle = 0.0
 
-[node name="MenuSlime" type="Node2D" unique_id=16774492]
+[node name="MenuSlime" type="Node2D"]
 script = ExtResource("1_script")
 
-[node name="Body" type="ColorRect" parent="." unique_id=768653183]
+[node name="Body" type="ColorRect" parent="."]
 material = SubResource("ShaderMaterial_1")
 offset_left = -170.0
 offset_top = -170.0

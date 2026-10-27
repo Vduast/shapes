@@ -1,0 +1,66 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/tutorial_ghost.gd" id="1_script"]
+[ext_resource type="Shader" path="res://shaders/shape.gdshader" id="2_shape"]
+[ext_resource type="Shader" path="res://shaders/ghost_hand.gdshader" id="3_hand"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_shape"]
+resource_local_to_scene = true
+shader = ExtResource("2_shape")
+shader_parameter/shape_type = 0
+shader_parameter/fill_color = Color(1, 1, 1, 1)
+shader_parameter/old_color = Color(1, 1, 1, 1)
+shader_parameter/wave = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bucket"]
+resource_local_to_scene = true
+shader = ExtResource("2_shape")
+shader_parameter/shape_type = 0
+shader_parameter/fill_color = Color(1, 1, 1, 1)
+shader_parameter/old_color = Color(1, 1, 1, 1)
+shader_parameter/wave = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hand"]
+resource_local_to_scene = true
+shader = ExtResource("3_hand")
+shader_parameter/grab = 0.0
+
+[node name="TutorialGhost" type="Node2D"]
+visible = false
+z_index = 30
+script = ExtResource("1_script")
+
+[node name="ShapeGhost" type="Node2D" parent="."]
+visible = false
+modulate = Color(1, 1, 1, 0.75)
+
+[node name="Body" type="ColorRect" parent="ShapeGhost"]
+material = SubResource("ShaderMaterial_shape")
+mouse_filter = 2
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 64.0
+offset_bottom = 64.0
+
+[node name="BucketGhost" type="Node2D" parent="."]
+visible = false
+modulate = Color(1, 1, 1, 0.8)
+
+[node name="Body" type="ColorRect" parent="BucketGhost"]
+material = SubResource("ShaderMaterial_bucket")
+mouse_filter = 2
+offset_left = -45.0
+offset_top = -45.0
+offset_right = 45.0
+offset_bottom = 45.0
+
+[node name="Hand" type="Node2D" parent="."]
+modulate = Color(1, 1, 1, 0)
+
+[node name="Body" type="ColorRect" parent="Hand"]
+material = SubResource("ShaderMaterial_hand")
+mouse_filter = 2
+offset_left = -44.0
+offset_top = -26.4
+offset_right = 176.0
+offset_bottom = 193.6

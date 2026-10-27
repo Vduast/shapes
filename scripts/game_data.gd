@@ -30,6 +30,7 @@ const NAMES := {
 ## shapes: formas que puede pedir (y que ofrece la bandeja). masks: colores que puede pedir
 ## (vacío = cualquier color). palette: si se muestran los botes de pintura.
 ## Para añadir un nivel basta con agregar otro diccionario; el último debe tener goal 0.
+## Opcional: "tutorial": false desactiva la mano fantasma en ese nivel (por defecto está activa).
 const STAGES := [
 	{
 		"name": "Formas",

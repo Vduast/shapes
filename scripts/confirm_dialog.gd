@@ -42,6 +42,7 @@ func ask(title: String = "", message: String = "", yes_text: String = "", no_tex
 		no_button.text = no_text
 
 	visible = true
+	Sound.play("pop")
 	modulate.a = 0.0
 	panel.scale = Vector2.ONE * 0.7
 	_kill_tween()

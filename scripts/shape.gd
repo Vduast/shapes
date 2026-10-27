@@ -107,6 +107,7 @@ func paint(brush_mask: int) -> void:
 		color_mask |= brush_mask
 	_shown_color = GameData.mask_to_color(color_mask)
 	_touch()
+	Sound.play_varied("paint", 0.05)
 
 	var mat := visual.material as ShaderMaterial
 	mat.set_shader_parameter("old_color", old)
@@ -228,6 +229,7 @@ func _start_drag() -> void:
 	_kill_tween()
 	_touch()
 	_dragging = true
+	Sound.play_varied("pick", 0.06)
 	_moved = false
 	_press_mouse = get_global_mouse_position()
 	_grab_offset = global_position - _press_mouse
@@ -242,6 +244,7 @@ func _end_drag() -> void:
 	if not _moved or _vanishing:
 		return
 	_touch()
+	Sound.play_varied("drop", 0.06)
 
 	# Golpecito al soltarla: se aplasta, se mece y tiembla hasta quedarse quieta
 	_sway_vel += randf_range(-7.0, 7.0) * jelly
@@ -277,6 +280,7 @@ func vanish() -> void:
 	if _vanishing:
 		return
 	_vanishing = true
+	Sound.play_varied("pop", 0.08, -4.0)
 	_dragging = false
 	input_pickable = false
 	modulate.a = 1.0

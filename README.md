@@ -18,6 +18,7 @@ Juego educativo 2D para niños desarrollado con **Godot Engine 4.7 (GDScript)**.
    - [main.gd](#maingd)
    - [monster.gd](#monstergd)
    - [slime_face.gd](#slime_facegd)
+   - [tutorial_ghost.gd](#tutorial_ghostgd)
    - [shape.gd](#shapegd)
    - [shape_tray.gd](#shape_traygd)
    - [paint_bucket.gd](#paint_bucketgd)
@@ -32,6 +33,9 @@ Juego educativo 2D para niños desarrollado con **Godot Engine 4.7 (GDScript)**.
    - [menu_slime.gd](#menu_slimegd)
    - [cream_button.gd](#cream_buttongd)
    - [animated_title.gd](#animated_titlegd)
+   - [level_select.gd](#level_selectgd)
+   - [save_data.gd](#save_datagd)
+   - [sound_manager.gd](#sound_managergd)
 9. [Escenas: cómo funciona cada una](#escenas-cómo-funciona-cada-una)
 10. [Shaders y efectos visuales](#shaders-y-efectos-visuales)
 11. [Técnicas de animación usadas](#técnicas-de-animación-usadas)
@@ -47,6 +51,9 @@ SHAPES es un juego de arrastrar y soltar con **once niveles** progresivos (forma
 - Una **bandeja** (`ShapeTray`) en la parte inferior ofrece solo las figuras que pide el nivel actual (3 en el nivel 1, las 5 desde el nivel 2 y solo estrella y corazón en el nivel 9): al sacar una, la bandeja repone otra igual. Las figuras de la bandeja **reaccionan al pasar el ratón** (crecen, se menean y se iluminan).
 - Una **paleta** (`Palette`) a la derecha con 3 botes de pintura (rojo, amarillo, azul) y un bote de "Limpiar". Se activa a partir del nivel 3.
 - Un **borrador** (`Eraser`) a la izquierda para deshacerse de las figuras que sobran.
+- Un **menú de niveles** (`level_select.tscn`) que se arma solo a partir de `GameData.STAGES` y un **guardado** (`SaveData`) del nivel más alto alcanzado: el botón *Jugar* pasa a *Continuar* y los niveles se desbloquean al llegar a ellos.
+- **Sonido 100 % procedural** (`Sound`, autoload): efectos y música en bucle generados por código, con soporte para reemplazarlos o ampliarlos con tus propios archivos (ver [sound_manager.gd](#sound_managergd)).
+- Una **mano fantasma** (`TutorialGhost`) que, al empezar cada nivel, muestra sin palabras cómo cumplir lo que pide el slime (ver [tutorial_ghost.gd](#tutorial_ghostgd)).
 - Un **HUD** con el nivel, el progreso, el botón **Menú** (pide confirmación antes de salir) y un letrero grande que anuncia cada nivel nuevo.
 - Mucho "juice" (sensación de gelatina): resortes que inclinan y estiran las figuras al moverlas, gotas de pintura que escurren, estallidos de chispas y un slime que respira, se agita y se aplasta al comer.
 
@@ -75,7 +82,9 @@ SHAPES es un juego de arrastrar y soltar con **once niveles** progresivos (forma
 3. Arrastra la figura hasta el slime y suéltala encima. Si coincide, se la come y cambia de color; si no, la rechaza y la figura sale despedida.
 4. Para borrar una figura o repintarla desde cero: suéltala sobre el **borrador**, o usa el bote **Limpiar** (vuelve la figura a blanco).
 5. Las figuras sueltas desaparecen solas tras 45 s sin tocarlas (parpadean durante los últimos 6 s).
-6. Para volver al menú, pulsa el botón **Menú** (abajo a la izquierda) o **Esc**: aparece una ventana de confirmación ("¿Volver al menú?") con **Sí, salir** y **Seguir jugando**. Esc o un clic fuera de la ventana también cancelan. Al salir se pierde el progreso (no hay guardado).
+6. **Tutorial fantasma:** al empezar cada nivel aparece una mano translucida que repite 3 veces la jugada: toma la figura que pide el slime de la bandeja, la lleva a una "mesa" en el centro, la **pinta** arrastrando sobre ella los botes que hagan falta (la figura fantasma cambia de color, así se ve cómo se mezcla) y se la lleva al slime; una guía de puntitos marca el camino. Desaparece con el primer clic del jugador y vuelve a salir como ayuda si pasan 15 s sin hacer clic.
+7. **Niveles y progreso:** el juego guarda el nivel más alto que alcanzas. En el menú, **Continuar** retoma ahí y **Niveles** abre una cuadrícula con todos los niveles: los ya alcanzados se pueden repetir (con ★ los superados, y el actual brilla) y los demás aparecen bloqueados. Los niveles nuevos que añadas a `GameData` aparecen solos. **Borrar progreso** (con confirmación) vuelve a empezar.
+8. Para volver al menú, pulsa el botón **Menú** (abajo a la izquierda) o **Esc**: aparece una ventana de confirmación ("¿Volver al menú?") con **Sí, salir** y **Seguir jugando**. Esc o un clic fuera de la ventana también cancelan. Al salir se pierde el progreso (no hay guardado).
 
 ---
 
@@ -99,9 +108,11 @@ SHAPES es un juego de arrastrar y soltar con **once niveles** progresivos (forma
 shapes/
 ├── scenes/                  # Escenas (.tscn)
 │   ├── main_menu.tscn       #   Menú principal (escena de arranque)
+│   ├── level_select.tscn    #   Menú de niveles (tarjetas creadas desde GameData.STAGES)
 │   ├── menu_slime.tscn      #   Slime del menú (cambia de color, te mira, reacciona)
 │   ├── cream_button.tscn    #   Botón crema reutilizable (menú, HUD y diálogo)
 │   ├── confirm_dialog.tscn  #   Ventana de confirmación (¿Volver al menú?)
+│   ├── tutorial_ghost.tscn  #   Mano fantasma del tutorial (figura y bote fantasma incluidos)
 │   ├── main.tscn            #   Escena del juego: ensambla todo
 │   ├── background.tscn      #   Fondo animado (ColorRect + shader)
 │   ├── monster.tscn         #   Slime que pide y come figuras
@@ -114,8 +125,9 @@ shapes/
 │   ├── hud.tscn             #   Interfaz (nivel, progreso, botón Menú, diálogo)
 │   ├── paint_burst.tscn     #   Efecto: anillo + chispas
 │   └── paint_drop.tscn      #   Efecto: gota de pintura
-├── scripts/                 # Lógica en GDScript (un .gd por escena + game_data.gd y slime_face.gd)
-├── shaders/                 # 12 shaders .gdshader (todo el arte del juego)
+├── scripts/                 # Lógica en GDScript (un .gd por escena + game_data.gd, slime_face.gd, save_data.gd y sound_manager.gd)
+├── shaders/                 # 13 shaders .gdshader (todo el arte del juego)
+├── audio/                   # (opcional) tus propios sonidos y música; ver audio/README.md
 ├── addons/script-ide/       # Plugin de editor (no afecta al juego)
 ├── icon.svg
 └── project.godot            # Configuración del proyecto
@@ -132,7 +144,9 @@ shapes/
 | Parámetro | Valor |
 |---|---|
 | Nombre de la aplicación | `Shapes` |
-| Escena principal | `res://scenes/main_menu.tscn` (el botón **Jugar** carga `res://scenes/main.tscn`) |
+| Escena principal | `res://scenes/main_menu.tscn` (**Jugar/Continuar** carga `res://scenes/main.tscn`; **Niveles** carga `res://scenes/level_select.tscn`) |
+| Autoload | `Sound` → `res://scripts/sound_manager.gd` |
+| Guardado | `user://shapes_save.cfg` (ConfigFile) |
 | Versión de Godot | `4.7` (Forward Plus) |
 | Resolución base | `1280 x 720` |
 | Modo de estiramiento | `canvas_items`, aspecto `expand` (la interfaz se escala con la ventana) |
@@ -140,7 +154,7 @@ shapes/
 | Motor de física 3D | `Jolt Physics` (no se usa: el juego es 2D) |
 | Driver de renderizado (Windows) | `d3d12` |
 
-El proyecto **no define autoloads, grupos globales, acciones de entrada propias ni buses de audio**. El input del juego es de ratón y se procesa dentro de cada `Area2D`; la única tecla usada es `ui_cancel` (Esc), una acción que Godot ya trae: en el juego pide volver al menú, en el menú cierra "Cómo jugar" y en el diálogo de confirmación cancela.
+El proyecto define **un solo autoload, `Sound`** (`scripts/sound_manager.gd`, sección `[autoload]` de `project.godot`), que también crea en tiempo de ejecución los buses de audio `Music` y `SFX`. No define grupos globales ni acciones de entrada propias. El input del juego es de ratón y se procesa dentro de cada `Area2D`; la única tecla usada es `ui_cancel` (Esc), una acción que Godot ya trae: en el juego pide volver al menú, en el menú cierra "Cómo jugar", en el menú de niveles vuelve al menú y en el diálogo de confirmación cancela.
 
 ---
 
@@ -160,6 +174,7 @@ Main (Node2D, main.gd)
 │   ├── Red / Yellow / Blue / Clean   (instancias de PaintBucket, cada 130 px hacia abajo)
 ├── ShapeTray           (Node2D, shape_tray.gd)     pos (640, 620)
 ├── Eraser              (Area2D, eraser.gd)         pos (93, 287)
+├── TutorialGhost       (Node2D, tutorial_ghost.gd, z_index 30)  oculto hasta que Main lo lanza
 ├── HUD                 (CanvasLayer, hud.gd)
 │   ├── ScoreLabel / HintLabel / MenuButton (CreamButton)
 │   └── ConfirmDialog   (Control, confirm_dialog.gd)  oculto hasta pedir salir
@@ -168,17 +183,18 @@ Main (Node2D, main.gd)
 
 ### Ciclo de una jugada
 
-0. Desde el menú, **Jugar** (`MainMenu._on_play`) desliza el panel, hace que el slime reaccione y carga `main.tscn`.
-1. `Main._ready()` activa el orden de picking del viewport, conecta `Monster.food_accepted` y aplica el nivel inicial (incluida la bandeja, con `tray.set_allowed_shapes()`).
+0. Desde el menú, **Jugar/Continuar** (`MainMenu._on_play`) deja en `SaveData.pending_stage` el nivel más alto alcanzado, desliza el panel, hace que el slime reaccione y carga `main.tscn`. **Niveles** carga `level_select.tscn`, donde elegir una tarjeta deja ese nivel en `pending_stage` y también carga `main.tscn`.
+1. `Main._ready()` toma el nivel de partida de `SaveData.pending_stage` (o del export `start_stage` si no hay), arranca la música `game`, activa el orden de picking del viewport, conecta `Monster.food_accepted` y aplica el nivel inicial (incluida la bandeja, con `tray.set_allowed_shapes()`).
 2. El `Monster` elige una petición al azar con `GameData.random_request()` y la muestra en su `RequestBubble`.
 3. Al pasar el ratón sobre una plantilla de la bandeja, esta reacciona (hover). El jugador la saca: al moverla más de 8 px deja de ser plantilla y emite `left_tray`; la `ShapeTray` crea una nueva del mismo tipo.
 4. (Niveles 2+) El jugador arrastra un `PaintBucket` sobre la figura. Al soltarlo, el bote llama a `shape.paint(mask)`: el color se **mezcla con OR de bits** y se anima una onda de color.
 5. Al soltar la figura, `Shape._end_drag()` revisa qué `Area2D` tiene debajo:
    - si es el slime → `Monster.try_eat(shape)`;
    - si es el borrador → `Eraser.erase_shape(shape)`.
-6. Si el slime la acepta: se la come (mastica y se pone feliz), cambia de color, emite `food_accepted` y `Main` suma progreso. Si el progreso alcanza la meta del nivel, sube de nivel (letrero, confeti, paleta con animación y el slime festeja con `celebrate()`). Si la rechaza, pone cara triste.
-7. Al terminar de comer, el slime pide otra cosa distinta de la anterior (y mira de reojo hacia su globo).
-8. En cualquier momento, **Esc** o el botón **Menú** llaman a `HUD.request_exit()`, que abre el diálogo de confirmación; solo si se pulsa **Sí, salir** se cambia a `main_menu.tscn`.
+6. Si el slime la acepta: se la come (mastica y se pone feliz), cambia de color, emite `food_accepted` y `Main` suma progreso. Si el progreso alcanza la meta del nivel, sube de nivel (se guarda con `SaveData.unlock_stage`, letrero, confeti, paleta con animación y el slime festeja con `celebrate()`). Si la rechaza, pone cara triste.
+7. Al terminar de comer, el slime pide otra cosa distinta de la anterior (y mira de reojo hacia su globo). Si el nivel acaba de empezar, `Main` espera 0.8 s (1.6 s tras subir de nivel) y lanza `ghost.play(...)` con esa petición.
+8. El tutorial se corta con el primer clic del jugador o cuando el slime come; si pasan 15 s sin clics, `Main` lo repite como ayuda.
+9. En cualquier momento, **Esc** o el botón **Menú** llaman a `HUD.request_exit()`, que abre el diálogo de confirmación; solo si se pulsa **Sí, salir** se cambia a `main_menu.tscn`.
 
 ### Comunicación entre escenas
 
@@ -196,6 +212,8 @@ Las escenas se hablan por **señales hacia arriba** y **llamadas a métodos haci
 | `food_accepted(shape_type, mask)` | `Monster` | `Main._on_food_accepted` (avanza progreso y niveles) |
 | `food_rejected(shape_type, mask)` | `Monster` | *(nadie conectado; la cara triste la pone el propio `Monster`)* |
 | `left_tray(shape)` | `Shape` | `ShapeTray._on_shape_left` (repone la figura, con `bind(type)`) |
+| `request_changed(shape_type, mask)` | `Monster` | `Main._on_request_changed` (programa el tutorial del nivel) |
+| `finished` | `TutorialGhost` | *(nadie conectado)* |
 | `confirmed` / `cancelled` | `ConfirmDialog` | `HUD` (`confirmed` → `_go_to_menu`; `cancelled` no necesita receptor) |
 | `poked` | `MenuSlime` | `MainMenu` (`title.jump`: el título hace su ola de saltos) |
 
@@ -233,7 +251,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 | `goal` | Aciertos para pasar al siguiente nivel (`0` = nivel final, infinito; solo el último debe tenerlo) |
 | `palette` | Si se muestran los botes de pintura |
 
-**Para añadir un nivel** basta con agregar otro diccionario con esos seis campos a `STAGES` antes del último (el que tiene `goal: 0`). `Main`, `Monster`, la bandeja y el HUD leen la lista, así que no hay que tocar nada más. En `Main` el export `start_stage` permite empezar directamente en cualquier nivel para probarlo (0 = primero).
+**Para añadir un nivel** basta con agregar otro diccionario con esos seis campos a `STAGES` antes del último (el que tiene `goal: 0`). `Main`, `Monster`, la bandeja, el HUD, el menú de niveles y el guardado (`SaveData`) leen la lista, así que no hay que tocar nada más: el nivel nuevo aparece bloqueado en el menú de niveles hasta que el jugador llegue a él. Un campo opcional `"tutorial": false` desactiva la mano fantasma en ese nivel (por defecto está activa). En `Main` el export `start_stage` permite empezar directamente en cualquier nivel para probarlo (0 = primero).
 
 ---
 
@@ -259,13 +277,17 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 ### `main.gd`
 **Hereda de:** `Node2D` — Director del juego: progreso, niveles y celebración.
 
-**Exportado:** `start_stage` — nivel con el que empieza (0 = primero, tope `GameData.STAGES.size() - 1`); útil para probar un nivel directamente desde el Inspector.
+**Exportados:** `tutorial` (activa o desactiva la mano fantasma) y `start_stage` — nivel con el que empieza (0 = primero, tope `GameData.STAGES.size() - 1`); útil para probar un nivel directamente desde el Inspector.
 
 **Variables:** `stage` (nivel actual), `progress` (aciertos en el nivel). Referencias a `$Monster`, `$Palette`, `$HUD` y `$ShapeTray`.
 
 | Función | Descripción |
 |---|---|
 | `_ready()` | Llama a `randomize()`, activa el orden y el "solo el primero" del picking del viewport, conecta `monster.food_accepted` y aplica el nivel inicial (limitado con `clampi`). |
+| `_input(event)` | Un clic izquierdo cancela el tutorial que estaba por salir y reinicia el contador de ayuda. |
+| `_process(delta)` | Cuenta regresiva del tutorial (`_tutorial_wait`) y, si el jugador lleva `HELP_AFTER` = 15 s sin clics, lo repite como ayuda. No corre con el diálogo de confirmación abierto. |
+| `_play_tutorial()` | Llama a `ghost.play(monster.wanted_shape, monster.wanted_mask, tray, palette, absorb_point)`. Si el slime está comiendo o hay un clic presionado, espera 0.4 s. |
+| `_on_request_changed(...)` | Con la primera petición de un nivel, programa el tutorial (`TUTORIAL_FIRST_DELAY` 0.8 s / `TUTORIAL_STAGE_DELAY` 1.6 s). |
 | `_unhandled_input(event)` | Con `ui_cancel` (Esc) llama a `hud.request_exit()`, que abre la confirmación. Si el diálogo ya está abierto, este Esc nunca llega aquí: el diálogo lo consume antes para cancelar. |
 | `_apply_stage(celebrate)` | Configura el nivel actual: `monster.set_stage(stage, not celebrate)`, `palette.set_enabled(cfg.palette, celebrate)`, `tray.set_allowed_shapes(cfg.shapes, celebrate)`, la pista del HUD y el progreso. Con `celebrate = true` (cambio de nivel) además llama a `monster.celebrate()` (el slime festeja con la cara grande al terminar de comer), muestra el letrero `¡Nivel N!  Nombre` y lanza el confeti. En un cambio de nivel el slime **no** cambia de petición al instante: la nueva llega cuando termina de comer. |
 | `_update_hud()` | Envía al HUD nivel, aciertos y meta. |
@@ -290,6 +312,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 | `_ready()` | Duplica el material del cuerpo (para que cada slime tenga el suyo), aplica `start_color`, crea su `SlimeFace` con ese material y hace la primera petición. |
 | `_process(delta)` | Si no está ocupado, detecta con `get_overlapping_areas()` si hay una figura encima (`has_method("get_eaten")`) y suaviza `_excite` hacia 1 o 0 (`lerp` exponencial, factor 10). Cada frame envía `excite` y `squish` al shader y actualiza la **cara**: la cara de fondo es `EXCITED` con una figura encima, `SLEEPY` tras `SLEEP_AFTER` s sin actividad (ni figuras ni movimiento del ratón) o `IDLE` en los demás casos, y mira hacia el ratón. |
 | `set_stage(value, refresh)` | Cambia el nivel; con `refresh = true` pide algo nuevo de inmediato. |
+| `is_busy()` | `true` mientras come o rechaza una figura. |
 | `celebrate()` | La llama `Main` al subir de nivel: marca `_cheer` para que el bocado actual termine con la cara `CHEER` en vez de `HAPPY`. |
 | `new_request()` | Despierta al slime (`_idle_time = 0`), le hace mirar de reojo hacia el globo 1.2 s (`glance`), pide una petición con `GameData.random_request(stage, _last_request)` y la muestra en el globo. Si acepta cualquier color, la figura del globo se dibuja en blanco. |
 | `try_eat(shape)` | Punto de entrada que llama la figura al soltarse encima. Si está ocupado devuelve `false`. Compara forma y color (`ANY_COLOR` ignora el color). Acepta (`_accept`) o rechaza (`_reject`) y devuelve el resultado. |
@@ -329,6 +352,31 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 **Parámetros del shader que controla** (mismos nombres en `PRESETS` y en `monster.gdshader`): `eye_open`, `eye_happy`, `eye_size`, `shine`, `brow`, `mouth_curve`, `mouth_open`, `mouth_width`, `blush`, `tears` y `sparkle`; además `blink` y `look`, que calcula `update()` aparte.
 
 **Para añadir una cara nueva:** agrega un valor al enum `Mood`, su entrada en `PRESETS` con los once parámetros y úsala con `play()` o como `base_mood`.
+
+---
+
+### `tutorial_ghost.gd`
+**Clase:** `TutorialGhost` — **Hereda de:** `Node2D` (`z_index` 30, oculto al inicio). Tutorial visual para niños que aún no leen: una **mano fantasma** demuestra la jugada del nivel. No conoce el juego; `Main` le pasa lo que necesita.
+
+**Señal:** `finished` (terminó o se detuvo). **Exportados:** `loops` (3 repeticiones) y `move_time` (0.85 s por traslado).
+
+**Una vuelta de la demostración** (línea de tiempo de un solo `Tween` con `set_loops`):
+1. La mano aparece junto a la figura pedida en la bandeja, se cierra en puño y la agarra (se crea una **figura fantasma** translúcida con el mismo `shape.gdshader`).
+2. Si el slime pide **cualquier color**: la lleva directo a su boca. Si pide un **color**: la lleva a una "mesa de trabajo" entre la bandeja y el slime y, por cada color primario de la máscara (rojo 1, amarillo 2, azul 4), va al bote, lo arrastra (un **bote fantasma**) sobre la figura y la pinta: estallido de pintura y la figura cambia de color con la misma onda del juego. Así el naranja se ve como *rojo, luego amarillo*; el marrón, como los tres.
+3. Recoge la figura ya pintada y se la lleva al slime, que "se la come" (la figura se encoge y hay un estallido blanco). La mano se desvanece y vuelve a empezar.
+
+Una **guía de puntitos** (`_draw`) marca los caminos y los puntos "corren" hacia el destino.
+
+| Función | Descripción |
+|---|---|
+| `play(shape_type, mask, tray, palette, target)` | Calcula las posiciones con `tray.slot_position()` y `palette.bucket_position()`, arma la guía y lanza la línea de tiempo. `mask <= 0` = sin pintar. |
+| `stop(immediate)` | Detiene todo; con fundido de 0.25 s o de golpe. Emite `finished`. |
+| `is_playing()` | `true` mientras la demostración corre. |
+| `_input(event)` | Un clic izquierdo del jugador la detiene. |
+| `_process(delta)` | Hace que la figura/bote fantasma siga a la mano y que esta se balancee. |
+| `_build(...)` | Construye la línea de tiempo (pasos 1 a 3 de arriba). |
+
+**Quién la lanza:** `Main` (ver `_play_tutorial`). Sale al llegar la primera petición de cada nivel, se corta con el primer clic o cuando el slime come, y reaparece como ayuda tras 15 s sin clics. Con `tutorial = false` en `Main` se desactiva por completo.
 
 ---
 
@@ -378,7 +426,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 ### `shape_tray.gd`
 **Clase:** `ShapeTray` — **Hereda de:** `Node2D`. Ofrece las figuras plantilla **del nivel actual** y las repone al sacarlas. Ya no crea figuras por su cuenta: es `Main` quien le indica cuáles con `set_allowed_shapes()`. Su tablero (`Board`, dibujado por `tray.gdshader`) crece o se encoge según cuántas figuras ofrezca el nivel.
 
-**Exportados:** `shape_scene` (`PackedScene` de `shape.tscn`), `spacing` (160 px entre figuras), `board_height` y `board_side` (medidas del tablero), `shape_lifetime` (45 s; se pasa a cada figura).
+**Exportados:** `shape_scene` (`PackedScene` de `shape.tscn`), `spacing` (160 px entre figuras; `slot_position(type)` devuelve la posición global de la casilla de un tipo, para el tutorial), `board_height` y `board_side` (medidas del tablero), `shape_lifetime` (45 s; se pasa a cada figura).
 
 **Estado:** `_allowed` (tipos permitidos en el nivel, ordenados) y `_templates` (diccionario `tipo → figura plantilla` que hay ahora en la bandeja).
 
@@ -414,7 +462,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 ---
 
 ### `color_palette.gd`
-**Hereda de:** `Node2D`. Contenedor de los 4 botes; controla su visibilidad y ajusta la tabla de madera (`Board`, `palette_board.gdshader`) a donde estén los botes.
+**Hereda de:** `Node2D`. Contenedor de los 4 botes; controla su visibilidad, expone `bucket_position(mask)` (posición global en reposo de cada bote, para el tutorial) y ajusta la tabla de madera (`Board`, `palette_board.gdshader`) a donde estén los botes.
 
 | Función | Descripción |
 |---|---|
@@ -470,6 +518,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 | `_ready()` | Conecta el botón **Menú** y el `confirmed` del diálogo, y crea **por código** un `Label` grande (fuente 56, blanco con contorno morado oscuro de 14 px, centrado, 1280×90 en (0, 230), ignora el ratón, transparente) para anunciar cada nivel. |
 | `set_progress(level, done, goal)` | Si hay meta, muestra `Nivel N   hechos/meta`; en el nivel final (meta 0) muestra `Nivel N   ★ hechos`. |
 | `set_hint(text)` | Cambia el texto de la pista (`HintLabel`). |
+| `is_dialog_open()` | `true` si la ventana de confirmación está abierta (el tutorial se pausa). |
 | `request_exit()` | Abre el diálogo "¿Volver al menú?" (`confirm.ask(...)`). Lo llaman el botón **Menú** y `Main` al pulsar Esc. **No** cambia de escena por sí mismo. |
 | `_go_to_menu()` | Solo se ejecuta cuando el jugador confirma (`confirmed`): carga `res://scenes/main_menu.tscn`. |
 | `show_banner(text)` | Muestra el letrero: alpha 1, escala 0.4 → 1 en 0.4 s (`TRANS_BACK`), se mantiene 1.6 s y se desvanece en 0.5 s. |
@@ -495,7 +544,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 ---
 
 ### `main_menu.gd`
-**Hereda de:** `Node2D`. Menú principal (escena de arranque): panel semitransparente a la izquierda (título animado + botones **Jugar**, **Cómo jugar** y **Salir**) y el slime del menú a la derecha, rodeado de figuras que flotan.
+**Hereda de:** `Node2D`. Menú principal (escena de arranque): panel semitransparente a la izquierda (título animado + botones **Jugar/Continuar** —el texto cambia si hay progreso guardado—, **Niveles**, **Cómo jugar**, **Salir** y un interruptor **Sonido: Sí/No** que usa `Sound.toggle_mute()`) y el slime del menú a la derecha, rodeado de figuras que flotan.
 
 | Función | Descripción |
 |---|---|
@@ -520,7 +569,7 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 ---
 
 ### `cream_button.gd`
-**Clase:** `CreamButton` — **Hereda de:** `ColorRect`. Botón crema dibujado por `menu_button.gdshader` con texto azul oscuro. Emite `pressed` al soltar el clic izquierdo con el ratón encima. Crece con el hover, se hunde al presionar y "tiembla" suave. **Exportados:** `text` y `font_size`. Lo usan el menú, el botón **Menú** del HUD y el diálogo de confirmación.
+**Clase:** `CreamButton` — **Hereda de:** `ColorRect`. Botón crema dibujado por `menu_button.gdshader` con texto azul oscuro. Emite `pressed` al soltar el clic izquierdo con el ratón encima. Crece con el hover, se hunde al presionar y "tiembla" suave. **Exportados:** `text`, `font_size`, `disabled` (se ve apagado y no emite `pressed`; al intentar presionarlo tiembla y suena `locked`) y `emphasized` (se ve "iluminado" y respira, para destacar una opción). Suena `hover` al pasar el ratón y `click` al presionar. Lo usan el menú, el botón **Menú** del HUD y el diálogo de confirmación.
 
 ---
 
@@ -529,12 +578,84 @@ Los colores son una **máscara de bits** (rojo = 1, amarillo = 2, azul = 4). Pin
 
 ---
 
+### `level_select.gd`
+**Hereda de:** `Node2D`. Menú de niveles. Una cuadrícula de 3 columnas con scroll (rueda del ratón) con **una tarjeta (`CreamButton`) por cada entrada de `GameData.STAGES`**, creada en `_build_cards()`: por eso al añadir un nivel a `GameData` aparece aquí sin tocar nada más.
+
+| Tarjeta | Aspecto |
+|---|---|
+| Nivel ya superado (`SaveData.is_completed`) | `★ Nivel N` + nombre |
+| Nivel actual (el más alto alcanzado) | `Nivel N` + nombre, con brillo (`emphasized`) |
+| Nivel bloqueado | `Nivel N` + "Bloqueado", apagada y sin respuesta (`disabled`) |
+
+| Función | Descripción |
+|---|---|
+| `_ready()` | Conecta *Volver*, *Borrar progreso* y el diálogo de confirmación, construye las tarjetas, arranca la música `menu` y anima la entrada del panel. |
+| `_build_cards()` | Borra y vuelve a crear las tarjetas; el subtítulo muestra "Nivel alcanzado: X de N". Las tarjetas usan `mouse_filter = PASS` para que la rueda del ratón llegue al scroll. |
+| `_play_stage(index)` | Deja el nivel en `SaveData.pending_stage`, hace una salida con fundido y carga `main.tscn`. |
+| `_ask_reset()` / `_reset()` | Pide confirmación (`ConfirmDialog`) y llama a `SaveData.reset_progress()`; luego reconstruye las tarjetas. |
+| `_unhandled_input(event)` | Esc vuelve al menú principal. |
+
+---
+
+### `save_data.gd`
+**Clase:** `SaveData` — **Hereda de:** `RefCounted`. Guardado en `user://shapes_save.cfg` (un `ConfigFile`). Todo es **estático**: no se instancia ni es autoload.
+
+| Miembro | Descripción |
+|---|---|
+| `pending_stage` | (variable estática) Nivel elegido en el menú para la próxima partida; `-1` = ninguno. `Main` lo lee en `_ready()` y lo limpia. |
+| `unlocked_stage()` | Índice (desde 0) del nivel más alto alcanzado, siempre dentro de `GameData.STAGES` (si borras niveles, se ajusta solo). |
+| `unlock_stage(index)` | Lo sube (y guarda) si es mayor al actual; `Main` lo llama al subir de nivel. |
+| `is_unlocked(i)` / `is_completed(i)` | Un nivel está desbloqueado si `i <= unlocked_stage()` y completado si `i < unlocked_stage()` (el último, al ser infinito, nunca). |
+| `reset_progress()` | Borra el progreso y conserva los ajustes. |
+| `get_setting(key, default)` / `set_setting(key, value)` | Ajustes guardados (`muted`, `music_volume`, `sfx_volume`). |
+
+> Solo se guarda **el nivel alcanzado**, no los aciertos dentro del nivel: al continuar se empieza ese nivel desde 0 aciertos. En Windows el archivo queda en `%APPDATA%\Godot\app_userdata\Shapes\` (en el editor: *Proyecto → Abrir carpeta de datos de usuario*).
+
+---
+
+### `sound_manager.gd`
+**Autoload:** `Sound` — **Hereda de:** `Node`. Todo el sonido del juego, **sin archivos de audio**: se sintetiza por código y se guarda en caché. Crea los buses `Music` y `SFX` y un grupo de 10 `AudioStreamPlayer` para los efectos (10 a la vez).
+
+**Efectos procedurales.** Cada efecto de la constante `SFX` es una lista de *capas* que se suman: `at` (inicio en s), `dur`, `f0`/`f1` (frecuencia inicial y final → barrido), `wave` (`SINE`, `TRI`, `SQUARE`, `SAW`, `NOISE`), `amp`, `atk`, `dec` (caída exponencial), `rel`, `vib_hz`/`vib` (vibrato) y `noise` (mezcla de ruido). `_render_layer()` genera la onda muestra por muestra y `_to_wav()` la convierte en un `AudioStreamWAV` de 16 bits a 22 050 Hz (con `tanh` como limitador). Se sintetizan una sola vez (en el arranque, un efecto por frame) y quedan en caché.
+
+| Efecto | Dónde suena |
+|---|---|
+| `click` / `hover` / `locked` | Botones (`CreamButton`): presionar, pasar el ratón, intentar abrir algo bloqueado |
+| `pick` / `drop` | Agarrar una figura / soltarla; `pick` agudo al agarrar un bote de pintura |
+| `paint` | Pintar una figura |
+| `eat` → `happy` / `levelup` | El slime come (ñam) y, 0.42 s después, jingle de alegría o de subida de nivel |
+| `reject` | El slime rechaza una figura |
+| `pop` | Figura que desaparece, tocar al slime del menú, abrir el diálogo de confirmación |
+| `whoosh` | Al pulsar Jugar y al elegir un nivel |
+| `sparkle` | *(disponible, sin usar)* |
+
+La mano fantasma del tutorial usa `pick`, `paint` y `eat` a −10 dB para no confundir con los sonidos reales.
+
+**Música en bucle.** La constante `MUSIC` define las pistas `menu` (calmada, tipo caja de música) y `game` (más movida, con batería): compases de 4 tiempos con acordes, bajo, arpegio, melodía y percusión. `_compose()` las renderiza **en un hilo** (`WorkerThreadPool`) al arrancar el juego, y el `AudioStreamWAV` resultante tiene `loop_mode = LOOP_FORWARD`; las notas que pasan del final se enrollan al principio para que el bucle no tenga corte. `play_music()` cambia de pista con un fundido.
+
+**Poner tu propia música o sonidos** (ver también `audio/README.md`):
+- `audio/music/menu.ogg|mp3|wav` o `audio/music/game.ogg…` reemplazan las pistas procedurales y se ponen **en bucle solas** (`_loopable()` activa el bucle en una copia del stream).
+- `audio/sfx/<nombre>.ogg|mp3|wav` reemplaza al efecto procedural con ese nombre.
+- Cualquier pista nueva: `Sound.play_music("nombre")` busca `audio/music/nombre.*`; o directamente `Sound.play_music_stream(un_AudioStream)`.
+
+| Función | Descripción |
+|---|---|
+| `play(sfx, pitch = 1.0, volume_db = 0.0)` | Reproduce un efecto. |
+| `play_varied(sfx, spread = 0.06, volume_db = 0.0)` | Igual, con el tono un poco al azar (suena menos repetitivo). |
+| `register_sfx(name, layers)` | Añade o reemplaza un efecto procedural con el formato de `SFX`. |
+| `register_stream(name, stream)` | Usa un `AudioStream` tuyo como efecto. |
+| `play_music(track)` / `play_music_stream(stream, id)` / `stop_music(fade)` | Música en bucle. Pedir la pista que ya suena no hace nada. |
+| `set_music_volume(v)` / `set_sfx_volume(v)` | Volumen lineal 0–1 por bus; se guarda en `SaveData`. |
+| `set_muted(v)` / `toggle_mute()` / `is_muted()` | Silencio general (bus `Master`); se guarda. El menú tiene un botón para esto. |
+
+---
+
 ## Escenas: cómo funciona cada una
 
 Todas las escenas con material propio usan `resource_local_to_scene = true` **y además** duplican el material en `_ready()`/`launch()`. Así, cada instancia tiene sus propios uniforms (si compartieran material, pintar una figura pintaría todas).
 
 ### `main_menu.tscn` — menú principal
-Escena de arranque (`Node2D`, `main_menu.gd`). Instancia `Background` y `Slime` (`menu_slime.tscn`, en (905, 420), escala 1.35), un nodo `Decor` donde el script crea las figuras que flotan y un `Panel` (`ColorRect` con `menu_panel.gdshader`) con el `Title` (`animated_title.gd`), el subtítulo, los `Buttons` (3 `CreamButton`: Jugar, Cómo jugar, Salir) y el bloque `Help` (instrucciones + botón Volver), que se alterna con los botones.
+Escena de arranque (`Node2D`, `main_menu.gd`). Instancia `Background` y `Slime` (`menu_slime.tscn`, en (905, 420), escala 1.35), un nodo `Decor` donde el script crea las figuras que flotan y un `Panel` (`ColorRect` con `menu_panel.gdshader`) con el `Title` (`animated_title.gd`), el subtítulo, los `Buttons` (4 `CreamButton`: Jugar/Continuar, Niveles, Cómo jugar, Salir), el `SoundButton` (interruptor de sonido) y el bloque `Help` (instrucciones + botón Volver), que se alterna con los botones.
 
 ### `menu_slime.tscn` — slime del menú
 `Node2D` (`menu_slime.gd`) con un solo `Body` (`ColorRect` 340×340 con `monster.gdshader`). Sin colisión: la detección del ratón es por distancia.
@@ -545,8 +666,14 @@ Escena de arranque (`Node2D`, `main_menu.gd`). Instancia `Background` y `Slime` 
 ### `confirm_dialog.tscn` — confirmación
 `Control` de pantalla completa (`confirm_dialog.gd`, oculto al inicio) con `Dim` (`ColorRect` oscuro que no captura el ratón; el clic lo recibe la raíz) y `Panel` (600×340, `menu_panel.gdshader` casi opaco, centrado por anclas) que contiene `Title`, `Message` y un `Buttons` (`HBoxContainer`) con `YesButton` y `NoButton` (instancias de `cream_button.tscn`). Está instanciada dentro de `hud.tscn`.
 
+### `level_select.tscn` — menú de niveles
+`Node2D` (`level_select.gd`) con `Background`, un `Panel` (`menu_panel.gdshader`, 1000×620) que contiene `Title`, `Subtitle`, un `Scroll` (`ScrollContainer` → `Margin` → `Grid` de 3 columnas, vacío en el editor: las tarjetas las crea el script), `BackButton` y `ResetButton` (`CreamButton`), y una `ConfirmLayer` (`CanvasLayer`, capa 10) con una instancia de `confirm_dialog.tscn`.
+
+### `tutorial_ghost.tscn` — mano fantasma
+`Node2D` (`tutorial_ghost.gd`) con tres nodos `Node2D` que llevan un `ColorRect` (`Body`, con `mouse_filter` en *ignore*): `ShapeGhost` (128×128, `shape.gdshader`, 75 % opaco), `BucketGhost` (90×90, `shape.gdshader`, 80 %) y `Hand` (220×220, `ghost_hand.gdshader`). El origen de `Hand` es la punta del dedo al señalar y el centro del puño al agarrar.
+
 ### `main.tscn` — escena principal del juego
-Nodo raíz `Main` (`Node2D`, `main.gd`). Instancia `Background`, `Monster` (610, 229), `Palette` (1150, 136), `ShapeTray` (640, 620), `Eraser` (93, 287) y `HUD`, más una `Camera2D` en (643, 360). Es la única escena que conoce a todas las demás: conecta el slime con el progreso y reparte los cambios de nivel. La bandeja se llena desde `Main`: con 3 figuras (nivel 1) quedan en x = 480, 640 y 800; con 5 (niveles 2 al 8, 10 y 11) en x = 320, 480, 640, 800 y 960; y con 2 (nivel 9, estrella y corazón) en x = 560 y 720.
+Nodo raíz `Main` (`Node2D`, `main.gd`). Instancia `Background`, `Monster` (610, 229), `Palette` (1150, 136), `ShapeTray` (640, 620), `Eraser` (93, 287), `TutorialGhost` y `HUD`, más una `Camera2D` en (643, 360). Es la única escena que conoce a todas las demás: conecta el slime con el progreso y reparte los cambios de nivel. La bandeja se llena desde `Main`: con 3 figuras (nivel 1) quedan en x = 480, 640 y 800; con 5 (niveles 2 al 8, 10 y 11) en x = 320, 480, 640, 800 y 960; y con 2 (nivel 9, estrella y corazón) en x = 560 y 720.
 
 ### `background.tscn` — fondo
 Un solo `ColorRect` de 1280×720 con `background.gdshader` y `mouse_filter = IGNORE` para no bloquear clics. No tiene script: todo es animación del shader (degradado ondulante, puntos que titilan y un piso oscuro desde el 80 % de la altura).
@@ -600,6 +727,7 @@ Todos son `shader_type canvas_item`. La mayoría usa **campos de distancia con s
 | `eraser.gdshader` | `eraser.tscn` | Goma rosa y azul inclinada con resalte al pasar una figura. |
 | `paint_burst.gdshader` | `paint_burst.tscn` | Anillo expansivo + 10 chispas romboidales. |
 | `paint_drop.gdshader` | `paint_drop.tscn` | Gota esférica con brillo. |
+| `ghost_hand.gdshader` | `tutorial_ghost.tscn` (`Hand`) | Mano fantasma translúcida con brazo que se desvanece. `grab` mezcla la pose que señala con el puño. |
 | `tray.gdshader` | `shape_tray.tscn` (`Board`) | Bandeja lila con un hueco por figura; crece con el número de casillas. |
 | `palette_board.gdshader` | `color_palette.tscn` (`Board`) | Tabla de pintor de madera con un hueco por bote y el agujero del pulgar. |
 | `menu_panel.gdshader` | `main_menu.tscn` (`Panel`), `confirm_dialog.tscn` (`Panel`) | Panel crema con borde, costura punteada, puntitos y sombra. |
@@ -703,6 +831,9 @@ Como la amortiguación es baja respecto a la rigidez, el valor **sobrepasa y osc
 
 **Cambios recientes**
 - **Cara del slime con shaders:** `monster.gdshader` dibuja ojos, mejillas y boca (uniforms `eye_*`, `mouth_*`, `brow`, `blink`, `look`, `blush`) y la nueva clase `SlimeFace` (`scripts/slime_face.gd`) elige y anima la cara según la acción: emocionado con una figura encima, masticando y feliz al comer, festejo al subir de nivel, triste al rechazar, sorprendido al tocarlo en el menú y con sueño tras 14 s sin actividad. Parpadea y sigue el ratón con la mirada. `Monster` y `MenuSlime` la usan; `Main` llama a `monster.celebrate()` al subir de nivel.
+- **Menú de niveles y guardado:** nueva escena `level_select.tscn` (+ `level_select.gd`) con una tarjeta por nivel de `GameData.STAGES` (superados con ★, actual con brillo, el resto bloqueados) y la clase estática `SaveData` que guarda en `user://shapes_save.cfg` el nivel más alto alcanzado. *Jugar* pasa a *Continuar*; `CreamButton` ganó `disabled` y `emphasized`.
+- **Sistema de sonido procedural:** nuevo autoload `Sound` (`sound_manager.gd`) con 13 efectos y 2 pistas de música en bucle generados por código (sin archivos), buses `Music`/`SFX`, volumen y silencio guardados, y la posibilidad de reemplazarlos o añadir los tuyos en `audio/`. Los sonidos están conectados a botones, figuras, botes, slime, menú y tutorial.
+- **Tutorial con mano fantasma:** nueva escena `tutorial_ghost.tscn` (+ `tutorial_ghost.gd` y `ghost_hand.gdshader`). Al empezar cada nivel demuestra cómo cumplir la petición: agarra la figura de la bandeja, la pinta con los botes necesarios (se ve cómo se mezclan los colores) y se la lleva al slime. Se corta con el primer clic y reaparece como ayuda a los 15 s sin clics. Para esto se añadieron `Monster.request_changed` / `is_busy()`, `ShapeTray.slot_position()`, `ColorPalette.bucket_position()` y `HUD.is_dialog_open()`; `GameData` admite `"tutorial": false` por nivel y `Main` el export `tutorial`.
 - **Slime estilo Slime Rancher:** silueta de gominola con brillo lateral, ojos ovalados oscuros con dos brillos, boca en "D" con lengua y colores de cara derivados del color del cuerpo. Las expresiones son más exageradas (ojos llorosos, lágrimas, destellos de fiesta) y se controlan con los nuevos uniforms `shine`, `tears` y `sparkle`.
 - **Confirmación al volver al menú:** nueva escena `confirm_dialog.tscn` (+ `confirm_dialog.gd`) dentro del HUD. El botón **Menú** y la tecla Esc ya no cambian de escena directamente: llaman a `HUD.request_exit()` y solo **Sí, salir** vuelve al menú.
 - **Once niveles en `GameData.STAGES`:** se añadieron *Nuevas formas*, *Naranja*, *Verde*, *Morado*, *Marrón*, *Estrellas y corazones* y *Maestro de colores* (antes eran 4). Ahora el marrón sí se pide y el nivel 9 quita figuras de la bandeja.
@@ -715,7 +846,9 @@ Como la amortiguación es baja respecto a la rigidez, el valor **sobrepasa y osc
 - **`food_rejected` no tiene ningún receptor.** El slime la emite al rechazar (y pone su cara triste él mismo, sin usar la señal), pero ningún otro script la escucha: es un buen punto de enganche para sonido o un contador de errores.
 - **El marrón (7)** se obtiene mezclando los tres primarios y solo se pide en los niveles 8, 9 y 11. Si el slime se come una figura marrón se vuelve marrón, y su cara se oscurece automáticamente para seguir viéndose.
 - **Las pistas de los niveles nuevos tampoco se ven** mientras `HintLabel` siga oculto (ver la primera nota): el letrero de inicio solo muestra el nombre del nivel.
-- **No hay guardado de progreso:** volver al menú (con confirmación) o cerrar el juego reinicia desde el nivel 1.
+- **El tutorial fantasma solo demuestra la petición actual:** no enseña el bote "Limpiar" ni el borrador (si una figura se pinta mal, el jugador debe descubrirlo). La mano se detiene con cualquier clic izquierdo, incluso uno fuera de las figuras.
+- **El guardado solo recuerda el nivel alcanzado**, no los aciertos dentro del nivel (al continuar empieza ese nivel de nuevo desde 0). Si eliminas o reordenas niveles en `GameData`, el índice guardado se ajusta al rango, pero puede apuntar a otro nivel.
+- **Los volúmenes y las notas de `SFX`/`MUSIC` son un punto de partida** y se ajustan en `sound_manager.gd`. La música procedural tarda un par de segundos en generarse al abrir el juego (corre en un hilo), así que el primer segundo del menú puede estar en silencio. Los sonidos de la mano fantasma, del hover y del tutorial son suaves a propósito.
 - **Al iniciar, el slime hace dos peticiones seguidas:** una en `Monster._ready()` y otra cuando `Main._ready()` aplica el nivel. Es inocuo (la segunda sustituye a la primera antes del primer frame).
 - **El texto del borrador** (`"Borrador"`) está escrito directamente en `eraser.tscn`, a diferencia de los botes, cuyo rótulo sale de `GameData`.
 - **El ancho del letrero de nivel** (`1280`) está fijo en `hud.gd`; con otra resolución base habría que cambiarlo o anclarlo.

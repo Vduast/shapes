@@ -1,0 +1,128 @@
+[gd_scene format=3 uid="uid://ck837sf5uvvcd"]
+
+[ext_resource type="Script" uid="uid://dmsesf7hx1aqo" path="res://scripts/level_select.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/background.tscn" id="2_bg"]
+[ext_resource type="Shader" uid="uid://bix21ojmxtp56" path="res://shaders/menu_panel.gdshader" id="3_panel"]
+[ext_resource type="FontFile" uid="uid://du0ttt14gmj8v" path="res://fonts/BadComic-Italic.otf" id="4_7plkq"]
+[ext_resource type="PackedScene" uid="uid://6r26arq32ceh" path="res://scenes/cream_button.tscn" id="4_button"]
+[ext_resource type="FontFile" uid="uid://ble7sfbjah0ci" path="res://fonts/BadComic-Regular.otf" id="5_ckc44"]
+[ext_resource type="PackedScene" uid="uid://cjktr5x6o4guh" path="res://scenes/confirm_dialog.tscn" id="5_confirm"]
+[ext_resource type="Shader" uid="uid://b1txrl7mann" path="res://shaders/menu_button.gdshader" id="7_o2xx4"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_panel"]
+shader = ExtResource("3_panel")
+shader_parameter/rect_size = Vector2(1000, 620)
+shader_parameter/radius = 42.0
+shader_parameter/pad = 14.0
+shader_parameter/border_width = 7.0
+shader_parameter/fill_color = Color(1, 0.96, 0.88, 0.72)
+shader_parameter/border_color = Color(1, 0.97, 0.86, 0.95)
+shader_parameter/shadow_color = Color(0.04, 0.02, 0.14, 0.45)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_htctk"]
+resource_local_to_scene = true
+shader = ExtResource("7_o2xx4")
+shader_parameter/rect_size = Vector2(380, 80)
+shader_parameter/fill_color = Color(1, 0.94, 0.78, 1)
+shader_parameter/slab_color = Color(0.9, 0.74, 0.5, 1)
+shader_parameter/outline_color = Color(0.07, 0.12, 0.38, 1)
+shader_parameter/hover = 0.0
+shader_parameter/press = 0.0
+shader_parameter/radius = 28.0
+shader_parameter/outline_width = 4.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_s6tf7"]
+resource_local_to_scene = true
+shader = ExtResource("7_o2xx4")
+shader_parameter/rect_size = Vector2(380, 80)
+shader_parameter/fill_color = Color(1, 0.94, 0.78, 1)
+shader_parameter/slab_color = Color(0.9, 0.74, 0.5, 1)
+shader_parameter/outline_color = Color(0.07, 0.12, 0.38, 1)
+shader_parameter/hover = 0.0
+shader_parameter/press = 0.0
+shader_parameter/radius = 28.0
+shader_parameter/outline_width = 4.0
+
+[node name="LevelSelect" type="Node2D" unique_id=2024442781]
+script = ExtResource("1_script")
+
+[node name="Background" parent="." unique_id=1847029801 instance=ExtResource("2_bg")]
+
+[node name="Panel" type="ColorRect" parent="." unique_id=1175850534]
+material = SubResource("ShaderMaterial_panel")
+offset_left = 140.0
+offset_top = 50.0
+offset_right = 1140.0
+offset_bottom = 670.0
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Panel" unique_id=802392366]
+layout_mode = 0
+offset_top = 24.0
+offset_right = 1000.0
+offset_bottom = 96.0
+theme_override_colors/font_color = Color(0.07, 0.12, 0.38, 1)
+theme_override_fonts/font = ExtResource("4_7plkq")
+theme_override_font_sizes/font_size = 56
+text = "Niveles"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Panel" unique_id=99089477]
+layout_mode = 0
+offset_top = 98.0
+offset_right = 1000.0
+offset_bottom = 136.0
+theme_override_colors/font_color = Color(0.07, 0.12, 0.38, 1)
+theme_override_fonts/font = ExtResource("5_ckc44")
+theme_override_font_sizes/font_size = 24
+text = "Nivel alcanzado"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="Panel" unique_id=12510721]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 148.0
+offset_right = 960.0
+offset_bottom = 536.0
+horizontal_scroll_mode = 0
+
+[node name="Margin" type="MarginContainer" parent="Panel/Scroll" unique_id=1852959368]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Grid" type="GridContainer" parent="Panel/Scroll/Margin" unique_id=636350026]
+layout_mode = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 24
+columns = 3
+
+[node name="BackButton" parent="Panel" unique_id=1929594771 instance=ExtResource("4_button")]
+material = SubResource("ShaderMaterial_htctk")
+layout_mode = 0
+offset_left = 60.0
+offset_top = 546.0
+offset_right = 320.0
+offset_bottom = 600.0
+text = "Volver"
+font_size = 30
+
+[node name="ResetButton" parent="Panel" unique_id=1821043222 instance=ExtResource("4_button")]
+material = SubResource("ShaderMaterial_s6tf7")
+layout_mode = 0
+offset_left = 680.0
+offset_top = 546.0
+offset_right = 940.0
+offset_bottom = 600.0
+text = "Borrar progreso"
+font_size = 24
+
+[node name="ConfirmLayer" type="CanvasLayer" parent="." unique_id=1374931260]
+layer = 10
+
+[node name="ConfirmDialog" parent="ConfirmLayer" unique_id=795548521 instance=ExtResource("5_confirm")]

@@ -56,5 +56,10 @@ func request_exit() -> void:
 	confirm.ask("¿Volver al menú?", "Si sales ahora perderás tu progreso de esta partida.", "Sí, salir", "Seguir jugando")
 
 
+## true si la ventana de confirmación está abierta
+func is_dialog_open() -> bool:
+	return confirm.is_open()
+
+
 func _go_to_menu() -> void:
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

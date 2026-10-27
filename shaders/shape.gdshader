@@ -58,7 +58,7 @@ void fragment() {
     } else if (shape_type == 1) {
         d = sd_box(p, vec2(0.36), 0.06);
     } else if (shape_type == 2) {
-        d = sd_triangle(q + vec2(0.0, 0.02), 0.31);
+        d = sd_triangle(q + vec2(0.0, 0.05), 0.40);
     } else if (shape_type == 3) {
         d = sd_star5(q + vec2(0.0, 0.05), 0.46, 0.45);
     } else {

@@ -49,6 +49,14 @@ func set_enabled(value: bool, animate: bool = true) -> void:
 			i += 1
 
 
+## Posición global (en reposo) del bote de una máscara de color; la usa el tutorial fantasma.
+func bucket_position(mask: int) -> Vector2:
+	for child in get_children():
+		if child is Area2D and child.get("mask") == mask:
+			return to_global(child.home_position)
+	return global_position
+
+
 ## Calcula el rectángulo del tablero y las posiciones de los huecos a partir de los botes.
 func _fit_board() -> void:
 	var first := Vector2.ZERO

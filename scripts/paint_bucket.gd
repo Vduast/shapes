@@ -47,6 +47,7 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 		z_index = 20
 		_last_drop_pos = global_position
 		_lift_vel += 3.0  # saltito al agarrarlo
+		Sound.play("pick", 1.3)
 		(visual.material as ShaderMaterial).set_shader_parameter("selected", 1.0)
 		if _tween and _tween.is_valid():
 			_tween.kill()

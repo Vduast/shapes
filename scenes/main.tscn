@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/color_palette.tscn" id="4_palette"]
 [ext_resource type="PackedScene" path="res://scenes/shape_tray.tscn" id="5_tray"]
 [ext_resource type="PackedScene" uid="uid://bn8n7hqpptkxc" path="res://scenes/hud.tscn" id="6_hud"]
+[ext_resource type="PackedScene" path="res://scenes/tutorial_ghost.tscn" id="7_ghost"]
 [ext_resource type="PackedScene" uid="uid://47hkmebuo6nv" path="res://scenes/eraser.tscn" id="6_o6xl0"]
 
 [node name="Main" type="Node2D" unique_id=988131146]
@@ -24,6 +25,8 @@ position = Vector2(640, 620)
 
 [node name="Eraser" parent="." unique_id=844693026 instance=ExtResource("6_o6xl0")]
 position = Vector2(93, 287)
+
+[node name="TutorialGhost" parent="." instance=ExtResource("7_ghost")]
 
 [node name="HUD" parent="." unique_id=1581647274 instance=ExtResource("6_hud")]
 

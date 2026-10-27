@@ -84,6 +84,7 @@ func poke() -> void:
 	_excite = 1.0
 	create_tween().tween_property(self, "_excite", 0.0, 0.7)
 	_face.play([[SlimeFace.Mood.SURPRISED, 0.35], [SlimeFace.Mood.HAPPY, 1.1]])
+	Sound.play_varied("pop", 0.1)
 	poked.emit()
 
 

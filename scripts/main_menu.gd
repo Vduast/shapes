@@ -3,6 +3,7 @@ extends Node2D
 ## y el slime cambiando de color a la derecha, rodeado de figuras que flotan.
 
 const GAME_SCENE := "res://scenes/main.tscn"
+const LEVELS_SCENE := "res://scenes/level_select.tscn"
 const SHAPE_SHADER := preload("res://shaders/shape.gdshader")
 const SLIME_SCALE := 1.35
 
@@ -27,6 +28,8 @@ var _decor_base: Array[Vector2] = []
 @onready var subtitle: Label = $Panel/Subtitle
 @onready var buttons: Control = $Panel/Buttons
 @onready var help: Control = $Panel/Help
+@onready var play_button: CreamButton = $Panel/Buttons/PlayButton
+@onready var sound_button: CreamButton = $Panel/SoundButton
 @onready var slime = $Slime
 @onready var decor: Node2D = $Decor
 
@@ -36,12 +39,19 @@ func _ready() -> void:
 	(panel.material as ShaderMaterial).set_shader_parameter("rect_size", panel.size)
 	_build_decor()
 
-	$Panel/Buttons/PlayButton.pressed.connect(_on_play)
+	play_button.pressed.connect(_on_play)
+	$Panel/Buttons/LevelsButton.pressed.connect(_on_levels)
+	sound_button.pressed.connect(_on_sound_toggle)
 	$Panel/Buttons/HelpButton.pressed.connect(_show_help.bind(true))
 	$Panel/Buttons/QuitButton.pressed.connect(get_tree().quit)
 	$Panel/Help/BackButton.pressed.connect(_show_help.bind(false))
 	slime.poked.connect(title.jump)
 	_show_help(false)
+
+	# "Continuar" si ya hay progreso guardado; la música del menú empieza aquí
+	play_button.text = "Continuar" if SaveData.unlocked_stage() > 0 else "Jugar"
+	_refresh_sound_label()
+	Sound.play_music("menu")
 
 	# Entrada: el panel se desliza desde la izquierda y el slime "salta" a escena
 	var final_pos := panel.position
@@ -95,12 +105,35 @@ func _show_help(value: bool) -> void:
 	help.visible = value
 	buttons.visible = not value
 	subtitle.visible = not value
+	sound_button.visible = not value
+
+
+func _refresh_sound_label() -> void:
+	sound_button.text = "Sonido: No" if Sound.is_muted() else "Sonido: Sí"
+
+
+func _on_sound_toggle() -> void:
+	Sound.toggle_mute()
+	_refresh_sound_label()
+
+
+## Abre el menú de niveles
+func _on_levels() -> void:
+	if _busy:
+		return
+	_busy = true
+	create_tween().tween_property(panel, "position:x", panel.position.x - 640.0, 0.35) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	await get_tree().create_timer(0.35).timeout
+	get_tree().change_scene_to_file(LEVELS_SCENE)
 
 
 func _on_play() -> void:
 	if _busy:
 		return
 	_busy = true
+	Sound.play("whoosh")
+	SaveData.pending_stage = SaveData.unlocked_stage()  # continúa en el nivel más alto alcanzado
 	slime.poke()
 	title.jump()
 	create_tween().tween_property(panel, "position:x", panel.position.x - 640.0, 0.45) \

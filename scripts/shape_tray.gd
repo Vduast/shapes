@@ -47,6 +47,11 @@ func set_allowed_shapes(types: Array, animate: bool = true) -> void:
 	_update_board(animate)
 
 
+## Posición global de la casilla de un tipo de figura (la usa el tutorial fantasma).
+func slot_position(type: int) -> Vector2:
+	return to_global(Vector2(_slot_x(type), 0.0))
+
+
 func _slot_x(type: int) -> float:
 	var i := _allowed.find(type)
 	return (i - (_allowed.size() - 1) / 2.0) * spacing

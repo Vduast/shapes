@@ -3,6 +3,8 @@ extends Area2D
 
 signal food_accepted(shape_type: int, mask: int)
 signal food_rejected(shape_type: int, mask: int)
+## El slime pidió algo nuevo (lo usa Main para el tutorial fantasma)
+signal request_changed(shape_type: int, mask: int)
 
 ## Color con el que empieza el slime (se puede cambiar en el Inspector)
 @export var start_color := Color(0.35, 0.75, 0.85)
@@ -88,6 +90,12 @@ func new_request() -> void:
 	wanted_mask = r["mask"]
 	# Si acepta cualquier color, la burbuja muestra la forma en blanco
 	bubble.show_request(wanted_shape, 0 if wanted_mask == GameData.ANY_COLOR else wanted_mask)
+	request_changed.emit(wanted_shape, wanted_mask)
+
+
+## true mientras come o rechaza una figura
+func is_busy() -> bool:
+	return _busy
 
 
 func try_eat(shape) -> bool:
@@ -118,6 +126,11 @@ func _accept(shape) -> void:
 		_face.play([[SlimeFace.Mood.EATING, 0.45], [SlimeFace.Mood.CHEER, 1.7]])
 	else:
 		_face.play([[SlimeFace.Mood.EATING, 0.45], [SlimeFace.Mood.HAPPY, 1.0]])
+
+	# Sonido: "ñam" y, al terminar de masticar, jingle de alegría (o de subida de nivel)
+	Sound.play_varied("eat", 0.04)
+	var jingle := "levelup" if _cheer else "happy"
+	get_tree().create_timer(0.42).timeout.connect(func(): Sound.play(jingle))
 	_cheer = false
 
 	_excite = 1.0
@@ -141,6 +154,7 @@ func _reject(shape) -> void:
 	_busy = true
 	_idle_time = 0.0
 	_face.play([[SlimeFace.Mood.SAD, 1.1]])
+	Sound.play("reject")
 	food_rejected.emit(shape.shape_type, shape.color_mask)
 	var t := create_tween()
 	t.tween_property(self, "_squish", 0.8, 0.08)

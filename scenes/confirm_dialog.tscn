@@ -3,9 +3,8 @@
 [ext_resource type="Script" uid="uid://c42h2ljt31lfk" path="res://scripts/confirm_dialog.gd" id="1_script"]
 [ext_resource type="Shader" uid="uid://bix21ojmxtp56" path="res://shaders/menu_panel.gdshader" id="2_panel"]
 [ext_resource type="PackedScene" uid="uid://6r26arq32ceh" path="res://scenes/cream_button.tscn" id="3_button"]
-[ext_resource type="FontFile" uid="uid://du0ttt14gmj8v" path="res://fonts/BadComic-Italic.otf" id="3_su0nc"]
-[ext_resource type="FontFile" uid="uid://ble7sfbjah0ci" path="res://fonts/BadComic-Regular.otf" id="4_y3rnx"]
-[ext_resource type="Shader" uid="uid://b1txrl7mann" path="res://shaders/menu_button.gdshader" id="6_8jlha"]
+[ext_resource type="FontFile" uid="uid://du0ttt14gmj8v" path="res://fonts/BadComic-Italic.otf" id="3_ye1fd"]
+[ext_resource type="Shader" uid="uid://b1txrl7mann" path="res://shaders/menu_button.gdshader" id="5_su0nc"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_panel"]
 resource_local_to_scene = true
@@ -18,9 +17,9 @@ shader_parameter/fill_color = Color(1, 0.96, 0.88, 0.96)
 shader_parameter/border_color = Color(1, 0.97, 0.86, 1)
 shader_parameter/shadow_color = Color(0.04, 0.02, 0.14, 0.45)
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_3lk8k"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_y3rnx"]
 resource_local_to_scene = true
-shader = ExtResource("6_8jlha")
+shader = ExtResource("5_su0nc")
 shader_parameter/rect_size = Vector2(380, 80)
 shader_parameter/fill_color = Color(1, 0.94, 0.78, 1)
 shader_parameter/slab_color = Color(0.9, 0.74, 0.5, 1)
@@ -30,9 +29,9 @@ shader_parameter/press = 0.0
 shader_parameter/radius = 28.0
 shader_parameter/outline_width = 4.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_7lvm3"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8jlha"]
 resource_local_to_scene = true
-shader = ExtResource("6_8jlha")
+shader = ExtResource("5_su0nc")
 shader_parameter/rect_size = Vector2(380, 80)
 shader_parameter/fill_color = Color(1, 0.94, 0.78, 1)
 shader_parameter/slab_color = Color(0.9, 0.74, 0.5, 1)
@@ -42,7 +41,7 @@ shader_parameter/press = 0.0
 shader_parameter/radius = 28.0
 shader_parameter/outline_width = 4.0
 
-[node name="ConfirmDialog" type="Control" unique_id=1421180613]
+[node name="ConfirmDialog" type="Control" unique_id=906304629]
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -52,7 +51,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Dim" type="ColorRect" parent="." unique_id=2110163116]
+[node name="Dim" type="ColorRect" parent="." unique_id=1265725561]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -62,7 +61,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.04, 0.02, 0.14, 0.62)
 
-[node name="Panel" type="ColorRect" parent="." unique_id=579137705]
+[node name="Panel" type="ColorRect" parent="." unique_id=1904741121]
 material = SubResource("ShaderMaterial_panel")
 layout_mode = 1
 anchors_preset = 8
@@ -77,34 +76,34 @@ offset_bottom = 170.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Title" type="Label" parent="Panel" unique_id=1670179861]
+[node name="Title" type="Label" parent="Panel" unique_id=698125763]
 layout_mode = 0
 offset_left = 40.0
 offset_top = 44.0
 offset_right = 560.0
 offset_bottom = 110.0
 theme_override_colors/font_color = Color(0.07, 0.12, 0.38, 1)
-theme_override_fonts/font = ExtResource("3_su0nc")
+theme_override_fonts/font = ExtResource("3_ye1fd")
 theme_override_font_sizes/font_size = 44
 text = "¿Volver al menú?"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Message" type="Label" parent="Panel" unique_id=135100333]
+[node name="Message" type="Label" parent="Panel" unique_id=901119280]
 layout_mode = 0
 offset_left = 50.0
 offset_top = 116.0
 offset_right = 550.0
 offset_bottom = 206.0
 theme_override_colors/font_color = Color(0.07, 0.12, 0.38, 1)
-theme_override_fonts/font = ExtResource("4_y3rnx")
+theme_override_fonts/font = ExtResource("3_ye1fd")
 theme_override_font_sizes/font_size = 24
 text = "Si sales ahora perderás tu progreso de esta partida."
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="Buttons" type="HBoxContainer" parent="Panel" unique_id=1390691241]
+[node name="Buttons" type="HBoxContainer" parent="Panel" unique_id=2042784107]
 layout_mode = 0
 offset_left = 40.0
 offset_top = 224.0
@@ -112,15 +111,15 @@ offset_right = 560.0
 offset_bottom = 294.0
 theme_override_constants/separation = 24
 
-[node name="YesButton" parent="Panel/Buttons" unique_id=1501674644 instance=ExtResource("3_button")]
-material = SubResource("ShaderMaterial_3lk8k")
+[node name="YesButton" parent="Panel/Buttons" unique_id=1653173889 instance=ExtResource("3_button")]
+material = SubResource("ShaderMaterial_y3rnx")
 custom_minimum_size = Vector2(248, 70)
 layout_mode = 2
 text = "Sí, salir"
 font_size = 26
 
-[node name="NoButton" parent="Panel/Buttons" unique_id=313686878 instance=ExtResource("3_button")]
-material = SubResource("ShaderMaterial_7lvm3")
+[node name="NoButton" parent="Panel/Buttons" unique_id=1447494220 instance=ExtResource("3_button")]
+material = SubResource("ShaderMaterial_8jlha")
 custom_minimum_size = Vector2(248, 70)
 layout_mode = 2
 text = "Seguir jugando"
