@@ -28,6 +28,11 @@ func is_open() -> bool:
 	return visible
 
 
+## Cierra el diálogo como si se hubiera pulsado "No" (lo usa el botón Atrás de Android).
+func cancel() -> void:
+	_answer(false)
+
+
 ## Muestra el diálogo. Los textos vacíos dejan los que trae la escena.
 func ask(title: String = "", message: String = "", yes_text: String = "", no_text: String = "") -> void:
 	if visible:

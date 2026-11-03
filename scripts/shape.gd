@@ -61,6 +61,12 @@ func setup(type: int, mask: int = 0) -> void:
 		_refresh()
 
 
+## Radio de la figura para saber si cae sobre el slime o el borrador (= su colisión)
+const DROP_RADIUS := 52.0
+
+var _drag_age := 0.0
+
+
 func _on_mouse_entered() -> void:
 	_hovered = true
 	if is_template and not _vanishing:
@@ -161,6 +167,12 @@ func _process(delta: float) -> void:
 		return
 
 	if _dragging:
+		# Seguro para el celular: si el sistema cancela el toque (gesto del borde, llamada...)
+		# nunca llega el "soltar"; sin esto la figura se quedaría pegada al dedo.
+		_drag_age += delta
+		if _drag_age > 0.2 and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_end_drag()
+			return
 		var m := get_global_mouse_position()
 		if not _moved and m.distance_to(_press_mouse) > 8.0:
 			_moved = true
@@ -168,7 +180,7 @@ func _process(delta: float) -> void:
 				is_template = false
 				left_tray.emit(self)  # la bandeja repone una figura nueva
 		if _moved:
-			var rect := get_viewport_rect().grow(-50.0)
+			var rect := _visible_rect().grow(-50.0)
 			var goal := (m + _grab_offset).clamp(rect.position, rect.end)
 			# Sigue al mouse con un poquito de retraso (no es rígido)
 			global_position = global_position.lerp(goal, 1.0 - exp(-24.0 * delta))
@@ -229,6 +241,7 @@ func _start_drag() -> void:
 	_kill_tween()
 	_touch()
 	_dragging = true
+	_drag_age = 0.0
 	Sound.play_varied("pick", 0.06)
 	_moved = false
 	_press_mouse = get_global_mouse_position()
@@ -253,22 +266,48 @@ func _end_drag() -> void:
 	_tremor = 4.0 * jelly
 	_tremor_t = 0.0
 
-	for area in get_overlapping_areas():
-		if area.has_method("try_eat"):
-			if area.try_eat(self):
+	# La figura se coloca justo bajo el dedo/cursor antes de ver dónde cayó: con el dedo se
+	# suelta casi al instante y la figura aún va "en camino" por el retraso del seguimiento.
+	var rect := _visible_rect().grow(-50.0)
+	global_position = (get_global_mouse_position() + _grab_offset).clamp(rect.position, rect.end)
+
+	for target in _drop_targets():
+		if target.has_method("try_eat"):
+			if target.try_eat(self):
 				return
-			_push_away(area.global_position)
+			_push_away(target.global_position)
 			return
-		if area.has_method("erase_shape"):
-			area.erase_shape(self)
+		if target.has_method("erase_shape"):
+			target.erase_shape(self)
 			return
+
+
+## Destinos donde puede caer la figura (slime, borrador), del más cercano al más lejano.
+## Se calcula por distancia y no con las áreas de física, que se actualizan un frame después
+## y fallaban al soltar rápido (sobre todo con el dedo en un celular).
+func _drop_targets() -> Array:
+	var found: Array = []
+	for t in get_tree().get_nodes_in_group("drop_target"):
+		var reach: float = t.get_drop_radius() + DROP_RADIUS
+		if t.global_position.distance_to(global_position) <= reach:
+			found.append(t)
+	found.sort_custom(func(a, b):
+		return a.global_position.distance_squared_to(global_position) \
+			< b.global_position.distance_squared_to(global_position))
+	return found
+
+
+## Área visible en coordenadas del mundo (get_viewport_rect() solo sirve sin cámara: con la
+## Camera2D y pantallas más anchas que 16:9 dejaba zonas inalcanzables y otras fuera de pantalla)
+func _visible_rect() -> Rect2:
+	return get_canvas_transform().affine_inverse() * get_viewport_rect()
 
 
 func _push_away(center: Vector2) -> void:
 	var dir := (global_position - center).normalized()
 	if dir == Vector2.ZERO:
 		dir = Vector2.DOWN
-	var rect := get_viewport_rect().grow(-50.0)
+	var rect := _visible_rect().grow(-50.0)
 	var target := (center + dir * 240.0).clamp(rect.position, rect.end)
 	_kill_tween()
 	_tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

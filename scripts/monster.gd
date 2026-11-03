@@ -33,6 +33,7 @@ var _face: SlimeFace
 
 
 func _ready() -> void:
+	add_to_group("drop_target")
 	body.material = body.material.duplicate()
 	_current_color = start_color
 	_set_body_color(start_color)
@@ -96,6 +97,11 @@ func new_request() -> void:
 ## true mientras come o rechaza una figura
 func is_busy() -> bool:
 	return _busy
+
+
+## Radio dentro del cual acepta figuras (el de su colisión)
+func get_drop_radius() -> float:
+	return ($Collision.shape as CircleShape2D).radius * scale.x
 
 
 func try_eat(shape) -> bool:

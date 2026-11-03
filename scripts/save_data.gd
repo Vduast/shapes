@@ -43,6 +43,22 @@ static func unlock_stage(index: int) -> void:
 		save()
 
 
+## Aciertos guardados dentro del nivel `stage` (0 si lo guardado es de otro nivel).
+static func saved_progress(stage: int) -> int:
+	_ensure()
+	if int(_cfg.get_value("progress", "stage", -1)) != stage:
+		return 0
+	return maxi(int(_cfg.get_value("progress", "count", 0)), 0)
+
+
+## Guarda los aciertos que lleva el jugador en el nivel `stage`.
+static func save_progress(stage: int, count: int) -> void:
+	_ensure()
+	_cfg.set_value("progress", "stage", stage)
+	_cfg.set_value("progress", "count", count)
+	save()
+
+
 static func is_unlocked(index: int) -> bool:
 	return index <= unlocked_stage()
 

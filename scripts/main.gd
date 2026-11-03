@@ -11,7 +11,7 @@ const BURST := preload("res://scenes/paint_burst.tscn")
 const TUTORIAL_FIRST_DELAY := 0.8   # al empezar la partida
 const TUTORIAL_STAGE_DELAY := 1.6   # en niveles nuevos: deja ver el letrero y el confeti
 ## Segundos sin que el jugador haga clic para repetir la ayuda
-const HELP_AFTER := 15.0
+const HELP_AFTER := 10.0
 
 @onready var monster = $Monster
 @onready var palette = $Palette
@@ -45,6 +45,14 @@ func _ready() -> void:
 	var first := SaveData.pending_stage if SaveData.pending_stage >= 0 else start_stage
 	SaveData.pending_stage = -1
 	stage = clampi(first, 0, GameData.STAGES.size() - 1)
+
+	# Si se continúa el mismo nivel donde se quedó, se recuperan sus aciertos
+	progress = SaveData.saved_progress(stage)
+	var saved_goal: int = GameData.STAGES[stage]["goal"]
+	if saved_goal > 0 and progress >= saved_goal:
+		progress = 0
+
+	DisplayServer.screen_set_keep_on(true)  # la pantalla no se apaga mientras se juega
 	Sound.play_music("game")
 	_palette_x = palette.position.x
 	_eraser_x = $Eraser.position.x
@@ -53,12 +61,29 @@ func _ready() -> void:
 	_apply_stage(false)
 
 
-## En pantallas más anchas que 16:9 (celulares) hay espacio extra a los lados: la paleta y el
-## borrador se pegan a los bordes y el resto queda centrado (la cámara está en el centro).
+## Adapta la escena a cualquier proporción de pantalla:
+##  - Si el área visible es más chica que 1280x720 (ventana de laptop 16:10, ventana angosta),
+##    la cámara se aleja para que no se recorte nada (la paleta y el borrador ya no se cortan).
+##  - Si es más ancha que 16:9 (celulares), la paleta y el borrador se pegan a los bordes
+##    reales y el resto queda centrado (la cámara está en el centro).
 func _fit_to_screen() -> void:
-	var extra := maxf(get_viewport_rect().size.x - DESIGN_WIDTH, 0.0)
-	palette.position.x = _palette_x + extra * 0.5
-	$Eraser.position.x = _eraser_x - extra * 0.5
+	var cam: Camera2D = $Camera2D
+	ScreenFit.fit_camera(cam, get_viewport())
+	var vis := ScreenFit.visible_world(cam, get_viewport())
+	var extra := maxf(vis.size.x - DESIGN_WIDTH, 0.0)
+	var safe := SafeArea.insets(get_viewport())   # margen por muescas y esquinas del celular
+	palette.position.x = _palette_x + extra * 0.5 - safe.z
+	$Eraser.position.x = _eraser_x - extra * 0.5 + safe.x
+
+
+func _exit_tree() -> void:
+	DisplayServer.screen_set_keep_on(false)
+
+
+## Botón "Atrás" de Android: igual que Esc (pide volver al menú o cancela el aviso)
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		hud.handle_back()
 
 
 ## Cada clic del jugador cancela el tutorial que esté por salir y reinicia el contador de ayuda
@@ -135,11 +160,13 @@ func _on_food_accepted(_shape_type: int, _mask: int) -> void:
 	ghost.stop()
 	_help_idle = 0.0
 	progress += 1
+	SaveData.save_progress(stage, progress)
 	var goal: int = GameData.STAGES[stage]["goal"]
 	if goal > 0 and progress >= goal and stage < GameData.STAGES.size() - 1:
 		stage += 1
 		progress = 0
 		SaveData.unlock_stage(stage)  # se guarda el nivel alcanzado
+		SaveData.save_progress(stage, 0)
 		_apply_stage(true)
 	else:
 		_update_hud()

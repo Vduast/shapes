@@ -10,6 +10,7 @@ const DROP := preload("res://scenes/paint_drop.tscn")
 var home_position := Vector2.ZERO
 
 var _dragging := false
+var _drag_age := 0.0
 var _returning := false
 var _tween: Tween
 var _highlighted = null
@@ -43,6 +44,7 @@ func _input_event(_viewport: Viewport, event: InputEvent, _shape_idx: int) -> vo
 			and event.button_index == MOUSE_BUTTON_LEFT \
 			and event.pressed and not _dragging:
 		_dragging = true
+		_drag_age = 0.0
 		_returning = false
 		z_index = 20
 		_last_drop_pos = global_position
@@ -65,6 +67,10 @@ func _process(delta: float) -> void:
 	var dt := minf(delta, 0.033)
 
 	if _dragging:
+		# Seguro para el celular: si el sistema cancela el toque, se suelta solo
+		_drag_age += delta
+		if _drag_age > 0.2 and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_end_drag()
 		var target = _find_target()
 		var goal := get_global_mouse_position()
 		if target:

@@ -35,6 +35,8 @@ var _decor_base: Array[Vector2] = []
 
 
 func _ready() -> void:
+	_fit_camera()
+	get_viewport().size_changed.connect(_fit_camera)
 	randomize()
 	(panel.material as ShaderMaterial).set_shader_parameter("rect_size", panel.size)
 	_build_decor()
@@ -108,6 +110,15 @@ func _show_help(value: bool) -> void:
 	sound_button.visible = not value
 
 
+## Botón "Atrás" de Android: cierra "Cómo jugar" o, desde el menú, sale del juego
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if help.visible:
+			_show_help(false)
+		else:
+			get_tree().quit()
+
+
 func _refresh_sound_label() -> void:
 	sound_button.text = "Sonido: No" if Sound.is_muted() else "Sonido: Sí"
 
@@ -140,3 +151,8 @@ func _on_play() -> void:
 		.set_delay(0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	await get_tree().create_timer(0.7).timeout
 	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+## Aleja la cámara si la pantalla es más chica que 1280x720, para que no se recorte el menú.
+func _fit_camera() -> void:
+	ScreenFit.fit_camera($Camera2D, get_viewport())

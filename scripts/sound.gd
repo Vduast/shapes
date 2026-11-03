@@ -61,6 +61,11 @@ static func set_sfx_volume(linear: float) -> void:
 	_m().set_sfx_volume(linear)
 
 
+## Activa o desactiva la vibración en celulares (se guarda).
+static func set_haptics(value: bool) -> void:
+	_m().set_haptics(value)
+
+
 static func set_muted(value: bool) -> void:
 	_m().set_muted(value)
 

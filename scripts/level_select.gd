@@ -9,6 +9,7 @@ const CARD_SCENE := preload("res://scenes/cream_button.tscn")
 const CARD_SIZE := Vector2(270, 100)
 
 var _busy := false
+var _cards: Array = []
 
 @onready var panel: ColorRect = $Panel
 @onready var subtitle: Label = $Panel/Subtitle
@@ -19,6 +20,8 @@ var _busy := false
 
 
 func _ready() -> void:
+	_fit_camera()
+	get_viewport().size_changed.connect(_fit_camera)
 	(panel.material as ShaderMaterial).set_shader_parameter("rect_size", panel.size)
 	back_button.pressed.connect(_go_back)
 	reset_button.pressed.connect(_ask_reset)
@@ -41,9 +44,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		_go_back()
 
 
+## Botón "Atrás" de Android: igual que Esc
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		if confirm.is_open():
+			confirm.cancel()
+		else:
+			_go_back()
+
+
 ## Crea una tarjeta por cada nivel de GameData.STAGES
 func _build_cards() -> void:
+	_cards.clear()
 	for c in grid.get_children():
+		grid.remove_child(c)
 		c.queue_free()
 
 	var unlocked := SaveData.unlocked_stage()
@@ -66,6 +80,17 @@ func _build_cards() -> void:
 		card.emphasized = (i == unlocked)   # el nivel al que llegaste brilla
 		card.pressed.connect(_play_stage.bind(i))
 		grid.add_child(card)
+		_cards.append(card)
+	_scroll_to_current()
+
+
+## Deja a la vista el nivel actual (con muchos niveles la lista hace scroll)
+func _scroll_to_current() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var idx := clampi(SaveData.unlocked_stage(), 0, _cards.size() - 1)
+	if idx >= 0 and is_instance_valid(_cards[idx]):
+		$Panel/Scroll.ensure_control_visible(_cards[idx])
 
 
 func _play_stage(index: int) -> void:
@@ -95,3 +120,8 @@ func _ask_reset() -> void:
 func _reset() -> void:
 	SaveData.reset_progress()
 	_build_cards()
+
+
+## Aleja la cámara si la pantalla es más chica que 1280x720, para que no se recorte el menú.
+func _fit_camera() -> void:
+	ScreenFit.fit_camera($Camera2D, get_viewport())

@@ -30,6 +30,11 @@ const EXTENSIONS := ["ogg", "mp3", "wav"]
 const VOICES := 10                 # efectos que pueden sonar a la vez
 const ARP := [0, 1, 2, 1, 0, 1, 2, 1]
 
+## Vibración (solo celulares) que acompaña a algunos efectos, en milisegundos. En Android
+## necesita el permiso "Vibrate" activado en el preset de exportación. El silencio general
+## también la apaga.
+const HAPTICS := {"pick": 12, "drop": 15, "paint": 20, "eat": 35, "reject": 80, "levelup": 140, "locked": 40}
+
 enum Wave { SINE, TRI, SQUARE, SAW, NOISE }
 
 ## Efectos. Cada capa admite (todo opcional salvo dur):
@@ -116,6 +121,7 @@ var _defs := {}                  # efectos disponibles (SFX + los registrados)
 var _cache := {}                 # nombre -> AudioStream ya sintetizado o cargado
 var _voices: Array[AudioStreamPlayer] = []
 var _next_voice := 0
+var _haptics := true
 
 var _music_player: AudioStreamPlayer
 var _music_tween: Tween
@@ -140,6 +146,7 @@ func _ready() -> void:
 	set_music_volume(SaveData.get_setting("music_volume", 0.8), false)
 	set_sfx_volume(SaveData.get_setting("sfx_volume", 1.0), false)
 	AudioServer.set_bus_mute(0, SaveData.get_setting("muted", false))
+	_haptics = SaveData.get_setting("haptics", true)
 
 	# Las pistas procedurales empiezan a generarse ya, en segundo plano
 	for track in MUSIC:
@@ -182,6 +189,7 @@ func _setup_buses() -> void:
 func play(sfx: String, pitch: float = 1.0, volume_db: float = 0.0) -> void:
 	if _voices.is_empty():
 		return  # el nodo aún no está listo (solo pasa en el primer instante del juego)
+	_haptic(sfx, volume_db)
 	var stream := _get_sfx(sfx)
 	if stream == null:
 		return
@@ -191,6 +199,18 @@ func play(sfx: String, pitch: float = 1.0, volume_db: float = 0.0) -> void:
 	p.pitch_scale = pitch
 	p.volume_db = volume_db
 	p.play()
+
+
+## Activa o desactiva la vibración (se guarda).
+func set_haptics(value: bool) -> void:
+	_haptics = value
+	SaveData.set_setting("haptics", value)
+
+
+func _haptic(sfx: String, volume_db: float) -> void:
+	# Los sonidos suaves (p. ej. los de la mano fantasma) no vibran
+	if _haptics and volume_db > -6.0 and HAPTICS.has(sfx) and OS.has_feature("mobile") and not is_muted():
+		Input.vibrate_handheld(HAPTICS[sfx])
 
 
 ## Como play(), con el tono un poco al azar (spread = variación máxima, 0.06 = ±6 %)
