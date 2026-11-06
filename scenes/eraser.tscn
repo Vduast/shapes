@@ -11,7 +11,7 @@ shader = ExtResource("2_shader")
 shader_parameter/hover = 0.0
 
 [node name="Eraser" type="Area2D" unique_id=844693026]
-input_pickable = false
+input_pickable = true
 script = ExtResource("1_script")
 
 [node name="Collision" type="CollisionShape2D" parent="." unique_id=13543233]
@@ -24,11 +24,3 @@ offset_top = -65.0
 offset_right = 65.0
 offset_bottom = 65.0
 mouse_filter = 2
-
-[node name="Label" type="Label" parent="." unique_id=518023469]
-offset_left = -60.0
-offset_top = 62.0
-offset_right = 60.0
-offset_bottom = 88.0
-text = "Borrador"
-horizontal_alignment = 1

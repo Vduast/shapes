@@ -12,7 +12,6 @@ var _busy := false
 var _cards: Array = []
 
 @onready var panel: ColorRect = $Panel
-@onready var subtitle: Label = $Panel/Subtitle
 @onready var grid: GridContainer = $Panel/Scroll/Margin/Grid
 @onready var back_button: CreamButton = $Panel/BackButton
 @onready var reset_button: CreamButton = $Panel/ResetButton
@@ -26,6 +25,11 @@ func _ready() -> void:
 	back_button.pressed.connect(_go_back)
 	reset_button.pressed.connect(_ask_reset)
 	confirm.confirmed.connect(_reset)
+	# Cabecera: solo un dibujo (cuadrícula) en lugar del título "Niveles"
+	var head := Icons.make(Icons.LEVELS, 92.0)
+	head.position = Vector2((panel.size.x - 92.0) / 2.0, 28.0)
+	panel.add_child(head)
+
 	_build_cards()
 	Sound.play_music("menu")
 
@@ -62,7 +66,6 @@ func _build_cards() -> void:
 
 	var unlocked := SaveData.unlocked_stage()
 	var total := GameData.STAGES.size()
-	subtitle.text = "Nivel alcanzado: %d de %d" % [unlocked + 1, total]
 
 	for i in total:
 		var cfg: Dictionary = GameData.STAGES[i]
@@ -72,10 +75,15 @@ func _build_cards() -> void:
 		card.mouse_filter = Control.MOUSE_FILTER_PASS  # deja pasar la rueda del ratón al scroll
 		card.font_size = 24
 		if open:
-			var mark := "★ " if SaveData.is_completed(i) else ""
-			card.text = "%sNivel %d\n%s" % [mark, i + 1, cfg["name"]]
+			# Solo el número del nivel; una estrella dorada si ya lo completó
+			card.text = str(i + 1)
+			card.font_size = 52
+			if SaveData.is_completed(i):
+				var star := Icons.make(Icons.STAR, 64.0)
+				star.position = Vector2(CARD_SIZE.x - 82.0, 14.0)
+				card.add_child(star)
 		else:
-			card.text = "Nivel %d\nBloqueado" % (i + 1)
+			card.icon = Icons.LOCK
 		card.disabled = not open
 		card.emphasized = (i == unlocked)   # el nivel al que llegaste brilla
 		card.pressed.connect(_play_stage.bind(i))
@@ -114,7 +122,7 @@ func _go_back() -> void:
 
 
 func _ask_reset() -> void:
-	confirm.ask("¿Borrar progreso?", "Volverás al nivel 1 y los demás se bloquearán de nuevo.", "Sí, borrar", "Cancelar")
+	confirm.ask(Icons.TRASH)
 
 
 func _reset() -> void:

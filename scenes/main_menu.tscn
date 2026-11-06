@@ -9,6 +9,8 @@
 [ext_resource type="FontFile" uid="uid://ble7sfbjah0ci" path="res://fonts/BadComic-Regular.otf" id="6_tbmy8"]
 [ext_resource type="Shader" uid="uid://b1txrl7mann" path="res://shaders/menu_button.gdshader" id="7_oa1go"]
 
+[ext_resource type="PackedScene" uid="uid://cjktr5x6o4guh" path="res://scenes/confirm_dialog.tscn" id="9_confirm"]
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_panel"]
 shader = ExtResource("4_panel")
 shader_parameter/rect_size = Vector2(500, 580)
@@ -118,87 +120,86 @@ offset_bottom = 164.0
 mouse_filter = 2
 script = ExtResource("5_title")
 
-[node name="Subtitle" type="Label" parent="Panel" unique_id=1994636880]
-layout_mode = 0
-offset_top = 168.0
-offset_right = 500.0
-offset_bottom = 208.0
-theme_override_colors/font_color = Color(0.07, 0.12, 0.38, 1)
-theme_override_fonts/font = ExtResource("6_tbmy8")
-theme_override_font_sizes/font_size = 26
-text = "¡Dale de comer al slime!"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Buttons" type="VBoxContainer" parent="Panel" unique_id=1334835062]
+[node name="Buttons" type="Control" parent="Panel"]
 layout_mode = 0
 offset_left = 60.0
-offset_top = 214.0
+offset_top = 196.0
 offset_right = 440.0
-offset_bottom = 494.0
-theme_override_constants/separation = 3
+offset_bottom = 560.0
+mouse_filter = 2
 
-[node name="PlayButton" parent="Panel/Buttons" unique_id=1031262383 instance=ExtResource("6_button")]
+[node name="PlayButton" parent="Panel/Buttons" instance=ExtResource("6_button")]
 material = SubResource("ShaderMaterial_oa1go")
-custom_minimum_size = Vector2(380, 72)
-layout_mode = 2
-text = "Jugar"
-font_size = 36
+custom_minimum_size = Vector2(380, 130)
+layout_mode = 0
+offset_right = 380.0
+offset_bottom = 130.0
+icon = 0
 
-[node name="LevelsButton" parent="Panel/Buttons" unique_id=1634053151 instance=ExtResource("6_button")]
+[node name="LevelsButton" parent="Panel/Buttons" instance=ExtResource("6_button")]
 material = SubResource("ShaderMaterial_tbmy8")
-custom_minimum_size = Vector2(380, 72)
-layout_mode = 2
-text = "Niveles"
+custom_minimum_size = Vector2(178, 100)
+layout_mode = 0
+offset_top = 146.0
+offset_right = 178.0
+offset_bottom = 246.0
+icon = 1
 
-[node name="HelpButton" parent="Panel/Buttons" unique_id=346969317 instance=ExtResource("6_button")]
+[node name="HelpButton" parent="Panel/Buttons" instance=ExtResource("6_button")]
 material = SubResource("ShaderMaterial_jk1qb")
-custom_minimum_size = Vector2(380, 72)
-layout_mode = 2
-text = "Cómo jugar"
+custom_minimum_size = Vector2(178, 100)
+layout_mode = 0
+offset_left = 202.0
+offset_top = 146.0
+offset_right = 380.0
+offset_bottom = 246.0
+icon = 2
 
-[node name="QuitButton" parent="Panel/Buttons" unique_id=777167305 instance=ExtResource("6_button")]
+[node name="QuitButton" parent="Panel/Buttons" instance=ExtResource("6_button")]
 material = SubResource("ShaderMaterial_5dd4i")
-custom_minimum_size = Vector2(380, 72)
-layout_mode = 2
-text = "Salir"
+custom_minimum_size = Vector2(178, 100)
+layout_mode = 0
+offset_left = 202.0
+offset_top = 262.0
+offset_right = 380.0
+offset_bottom = 362.0
+icon = 3
 
-[node name="SoundButton" parent="Panel" unique_id=662924751 instance=ExtResource("6_button")]
+[node name="SoundButton" parent="Panel" instance=ExtResource("6_button")]
 material = SubResource("ShaderMaterial_lgwnu")
+custom_minimum_size = Vector2(178, 100)
 layout_mode = 0
 offset_left = 60.0
-offset_top = 510.0
-offset_right = 440.0
-offset_bottom = 556.0
-text = "Sonido: Sí"
-font_size = 24
+offset_top = 458.0
+offset_right = 238.0
+offset_bottom = 558.0
+icon = 4
 
-[node name="Help" type="VBoxContainer" parent="Panel" unique_id=206622340]
+[node name="Help" type="VBoxContainer" parent="Panel"]
 visible = false
 layout_mode = 0
 offset_left = 52.0
 offset_top = 176.0
 offset_right = 448.0
-offset_bottom = 524.0
-theme_override_constants/separation = 16
+offset_bottom = 556.0
+theme_override_constants/separation = 12
 
-[node name="HelpLabel" type="Label" parent="Panel/Help" unique_id=1373736426]
+[node name="Pictos" type="Control" parent="Panel/Help"]
+custom_minimum_size = Vector2(0, 280)
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.07, 0.12, 0.38, 1)
-theme_override_constants/line_spacing = 6
-theme_override_font_sizes/font_size = 22
-text = "1. Mira qué figura (y qué color) pide el slime.
-2. Arrastra la figura desde la bandeja hasta el slime.
-3. Con los botes de pintura puedes colorearla. ¡Los colores se mezclan!
-4. El borrador quita las figuras que sobran."
-vertical_alignment = 1
-autowrap_mode = 3
+mouse_filter = 2
 
-[node name="BackButton" parent="Panel/Help" unique_id=1765735211 instance=ExtResource("6_button")]
+[node name="BackButton" parent="Panel/Help" instance=ExtResource("6_button")]
 material = SubResource("ShaderMaterial_flqon")
+custom_minimum_size = Vector2(0, 84)
 layout_mode = 2
-text = "Volver"
+icon = 6
+
+[node name="ConfirmLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="ConfirmDialog" parent="ConfirmLayer" instance=ExtResource("9_confirm")]
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(640, 360)

@@ -34,7 +34,12 @@ func _ready() -> void:
 	var mat := visual.material as ShaderMaterial
 	mat.set_shader_parameter("shape_type", 0)
 	mat.set_shader_parameter("fill_color", _color)
-	label.text = "Limpiar" if mask == 0 else GameData.mask_to_name(mask)
+	label.visible = false   # sin texto: el color se reconoce a simple vista
+	if mask == 0:
+		# El bote blanco "Limpiar" lleva brillos encima (quita el color)
+		var sparkle := Icons.make(Icons.SPARKLE, 62)
+		sparkle.position = (visual.size - sparkle.size) / 2.0
+		visual.add_child(sparkle)
 	home_position = position
 	_prev_pos = global_position
 

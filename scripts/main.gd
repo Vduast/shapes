@@ -26,6 +26,7 @@ const DESIGN_WIDTH := 1280.0   # ancho para el que se diseñó la escena
 
 var _palette_x := 0.0           # posición original de la paleta y del borrador
 var _eraser_x := 0.0
+var _eraser_y := 0.0
 var _tutorial_pending := false   # el nivel acaba de empezar: falta lanzar su tutorial
 var _tutorial_wait := -1.0       # cuenta regresiva para lanzarlo (-1 = ninguna)
 var _tutorial_delay := TUTORIAL_FIRST_DELAY
@@ -56,6 +57,7 @@ func _ready() -> void:
 	Sound.play_music("game")
 	_palette_x = palette.position.x
 	_eraser_x = $Eraser.position.x
+	_eraser_y = $Eraser.position.y
 	get_viewport().size_changed.connect(_fit_to_screen)
 	_fit_to_screen()
 	_apply_stage(false)
@@ -73,7 +75,7 @@ func _fit_to_screen() -> void:
 	var extra := maxf(vis.size.x - DESIGN_WIDTH, 0.0)
 	var safe := SafeArea.insets(get_viewport())   # margen por muescas y esquinas del celular
 	palette.position.x = _palette_x + extra * 0.5 - safe.z
-	$Eraser.position.x = _eraser_x - extra * 0.5 + safe.x
+	$Eraser.set_home(Vector2(_eraser_x - extra * 0.5 + safe.x, _eraser_y))
 
 
 func _exit_tree() -> void:
@@ -147,7 +149,7 @@ func _apply_stage(celebrate: bool) -> void:
 	_update_hud()
 	if celebrate:
 		monster.celebrate()  # cara de fiesta mientras se come el bocado que subió de nivel
-		hud.show_banner("¡Nivel %d!  %s" % [stage + 1, cfg["name"]])
+		hud.show_banner(str(stage + 1))
 		_confetti()
 
 

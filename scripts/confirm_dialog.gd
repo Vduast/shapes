@@ -1,6 +1,6 @@
 class_name ConfirmDialog
 extends Control
-## Diálogo de confirmación con el mismo estilo del menú (panel crema + botones CreamButton).
+## Diálogo de confirmación con el mismo estilo del menú (panel crema + botones CreamButton con iconos).
 ## Cubre toda la pantalla con un fondo oscuro que bloquea los clics hacia el juego.
 ## Se abre con ask(); emite `confirmed` (botón "Sí") o `cancelled` ("No", Esc o clic fuera).
 
@@ -8,18 +8,21 @@ signal confirmed
 signal cancelled
 
 @onready var panel: ColorRect = $Panel
-@onready var title_label: Label = $Panel/Title
-@onready var message_label: Label = $Panel/Message
 @onready var yes_button: CreamButton = $Panel/Buttons/YesButton
 @onready var no_button: CreamButton = $Panel/Buttons/NoButton
 
 var _tween: Tween
+var _icon_rect: ColorRect
 
 
 func _ready() -> void:
 	visible = false
 	(panel.material as ShaderMaterial).set_shader_parameter("rect_size", panel.size)
 	panel.pivot_offset = panel.size / 2.0
+	# Dibujo grande de lo que se pregunta (casa = volver al menú, bote = borrar...)
+	_icon_rect = Icons.make(Icons.HOME, 150.0)
+	_icon_rect.position = Vector2((panel.size.x - 150.0) / 2.0, 44.0)
+	panel.add_child(_icon_rect)
 	yes_button.pressed.connect(_answer.bind(true))
 	no_button.pressed.connect(_answer.bind(false))
 
@@ -33,18 +36,12 @@ func cancel() -> void:
 	_answer(false)
 
 
-## Muestra el diálogo. Los textos vacíos dejan los que trae la escena.
-func ask(title: String = "", message: String = "", yes_text: String = "", no_text: String = "") -> void:
+## Muestra el diálogo con un icono grande (ver Icons). Sin texto: los niños aún no leen.
+## Botones: palomita = sí, tache = no.
+func ask(icon: int = Icons.HOME) -> void:
 	if visible:
 		return
-	if title != "":
-		title_label.text = title
-	if message != "":
-		message_label.text = message
-	if yes_text != "":
-		yes_button.text = yes_text
-	if no_text != "":
-		no_button.text = no_text
+	Icons.apply(_icon_rect, icon)
 
 	visible = true
 	Sound.play("pop")

@@ -18,6 +18,16 @@ const NAVY := Color(0.07, 0.12, 0.38)
 		if _label:
 			_label.add_theme_font_size_override("font_size", value)
 
+## Icono dibujado por shader (ver Icons). -1 = sin icono: se muestra `text`.
+@export var icon := -1:
+	set(value):
+		icon = value
+		_apply_icon()
+@export var icon_tint := Icons.NAVY:
+	set(value):
+		icon_tint = value
+		_apply_icon()
+
 ## Si es true el botón se ve apagado y no responde (al intentar presionarlo suena un "no")
 @export var disabled := false
 ## Si es true se ve "iluminado" y respira (para destacar una opción, p. ej. el nivel actual)
@@ -29,6 +39,7 @@ var _press := 0.0
 var _hovered := false
 var _down := false
 var _mat: ShaderMaterial
+var _icon_rect: ColorRect
 
 @onready var _label: Label = $Label
 
@@ -43,11 +54,41 @@ func _ready() -> void:
 	mouse_exited.connect(_on_mouse_exited)
 	resized.connect(_on_resized)
 	_on_resized()
+	_apply_icon()
 
 
 func _on_resized() -> void:
 	pivot_offset = size / 2.0
 	_mat.set_shader_parameter("rect_size", size)
+	_layout_icon(0.0)
+
+
+## Muestra el icono (y oculta el texto) o al revés si icon < 0.
+func _apply_icon() -> void:
+	if _label == null:
+		return   # aún no está listo: _ready() vuelve a llamar
+	if icon < 0:
+		_label.visible = true
+		if _icon_rect:
+			_icon_rect.visible = false
+		return
+	_label.visible = false
+	if _icon_rect == null:
+		_icon_rect = ColorRect.new()
+		_icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_icon_rect)
+	_icon_rect.visible = true
+	Icons.apply(_icon_rect, icon, icon_tint)
+	_layout_icon(0.0)
+
+
+## El icono es cuadrado, ocupa ~70 % del lado corto del botón y queda centrado.
+func _layout_icon(y_shift: float) -> void:
+	if _icon_rect == null:
+		return
+	var s := minf(size.x, size.y) * 0.7
+	_icon_rect.size = Vector2(s, s)
+	_icon_rect.position = (size - Vector2(s, s)) / 2.0 + Vector2(0.0, y_shift)
 
 
 func _on_mouse_entered() -> void:
@@ -99,3 +140,4 @@ func _process(delta: float) -> void:
 	var y := -3.0 + 4.0 * _press
 	_label.offset_top = y
 	_label.offset_bottom = y
+	_layout_icon(y)

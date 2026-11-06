@@ -26,7 +26,7 @@ offset_top = 16.0
 offset_right = 300.0
 offset_bottom = 60.0
 theme_override_font_sizes/font_size = 30
-text = "Puntos: 0"
+text = "1"
 
 [node name="HintLabel" type="Label" parent="." unique_id=365665059]
 visible = false
@@ -35,7 +35,7 @@ offset_top = 20.0
 offset_right = 1256.0
 offset_bottom = 60.0
 theme_override_font_sizes/font_size = 18
-text = "1) Elige un bote  2) Toca una figura para pintarla (se mezclan)  3) Arrástrala al monstruo"
+text = ""
 horizontal_alignment = 2
 
 [node name="MenuButton" parent="." unique_id=1108587104 instance=ExtResource("2_button")]
@@ -50,7 +50,6 @@ offset_top = -102.0
 offset_right = 174.0
 offset_bottom = -30.0
 grow_vertical = 0
-text = "Menú"
 font_size = 26
 
 [node name="ConfirmDialog" parent="." unique_id=903315452 instance=ExtResource("3_confirm")]

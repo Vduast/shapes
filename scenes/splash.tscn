@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/splash.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/background.tscn" id="2_bg"]
+[ext_resource type="PackedScene" path="res://scenes/menu_slime.tscn" id="3_slime"]
+
+[node name="Splash" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Background" parent="." instance=ExtResource("2_bg")]
+
+[node name="Slime" parent="." instance=ExtResource("3_slime")]
+position = Vector2(640, 470)
+
+[node name="Logo" type="Sprite2D" parent="."]
+position = Vector2(640, 235)
+
+[node name="Fade" type="CanvasLayer" parent="."]
+layer = 50
+
+[node name="Black" type="ColorRect" parent="Fade"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(640, 360)
